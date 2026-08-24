@@ -1,0 +1,3 @@
+﻿model,mode,cutoff,ci_low,ci_high,ci_hits_lower_grid,ci_hits_upper_grid
+exact_corr_curve,curve,3.841458820694124,-0.9,0.9,True,True
+exact_corr_joint,joint,3.841458820694124,-0.10287266774601667,0.0378321234221744,False,False

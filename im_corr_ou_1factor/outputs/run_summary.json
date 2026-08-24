@@ -1,0 +1,141 @@
+{
+  "data_start": "2022-07-22",
+  "data_end": "2026-08-21",
+  "accepted_observations": 3667,
+  "curve_dates": 991,
+  "excluded_observations": 297,
+  "fixed_stock_volatility": 0.25,
+  "time_convention": "trading sessions / 244",
+  "evaluation_split_date": "2025-10-29",
+  "models": {
+    "legacy_curve": {
+      "parameters": {
+        "kappa": 7.93314339550093,
+        "theta": 0.09310201266287135,
+        "eta": 0.8077192964859571,
+        "rho": 0.0,
+        "sigma_epsilon": 0.020782040223660144,
+        "mu": 0.0
+      },
+      "fixed_sigma": 0.25,
+      "log_likelihood": 7950.936235707204,
+      "curve_log_likelihood": 7950.936235707204,
+      "return_log_likelihood": 0.0,
+      "converged": true,
+      "hessian_stable": true,
+      "half_life_sessions": 21.319154794623152
+    },
+    "exact_rho0_curve": {
+      "parameters": {
+        "kappa": 7.957750822455212,
+        "theta": 0.09761644648364803,
+        "eta": 0.8065126080336728,
+        "rho": 0.0,
+        "sigma_epsilon": 0.020796704791164092,
+        "mu": 0.0
+      },
+      "fixed_sigma": 0.25,
+      "log_likelihood": 7949.507614317877,
+      "curve_log_likelihood": 7949.507614317877,
+      "return_log_likelihood": 0.0,
+      "converged": true,
+      "hessian_stable": true,
+      "half_life_sessions": 21.253230445389274
+    },
+    "exact_corr_curve": {
+      "parameters": {
+        "kappa": 7.9584502380708475,
+        "theta": 0.11386856136968315,
+        "eta": 0.8063978346309584,
+        "rho": -0.6420016055443872,
+        "sigma_epsilon": 0.020796710703978125,
+        "mu": 0.0
+      },
+      "fixed_sigma": 0.25,
+      "log_likelihood": 7949.564330310255,
+      "curve_log_likelihood": 7949.564330310255,
+      "return_log_likelihood": 0.0,
+      "converged": true,
+      "hessian_stable": true,
+      "half_life_sessions": 21.25136263937032
+    },
+    "exact_rho0_joint": {
+      "parameters": {
+        "kappa": 7.967648222083638,
+        "theta": 0.09761965143984723,
+        "eta": 0.807201285069238,
+        "rho": 0.0,
+        "sigma_epsilon": 0.02079477171205738,
+        "mu": 0.16127258806911432
+      },
+      "fixed_sigma": 0.25,
+      "log_likelihood": 10646.287570155404,
+      "curve_log_likelihood": 7949.851931469233,
+      "return_log_likelihood": 2696.4356386861705,
+      "converged": true,
+      "hessian_stable": true,
+      "half_life_sessions": 21.226829717188195
+    },
+    "exact_corr_joint": {
+      "parameters": {
+        "kappa": 7.966731811448405,
+        "theta": 0.0984465361837705,
+        "eta": 0.8073193719265614,
+        "rho": -0.03276592879683365,
+        "sigma_epsilon": 0.020793696782449463,
+        "mu": 0.16228026474124382
+      },
+      "fixed_sigma": 0.25,
+      "log_likelihood": 10646.699806118935,
+      "curve_log_likelihood": 7950.267733639218,
+      "return_log_likelihood": 2696.4320724797167,
+      "converged": true,
+      "hessian_stable": true,
+      "half_life_sessions": 21.22927143268277
+    }
+  },
+  "profile_confidence_intervals": [
+    {
+      "model": "exact_corr_curve",
+      "mode": "curve",
+      "cutoff": 3.841458820694124,
+      "ci_low": -0.9,
+      "ci_high": 0.9,
+      "ci_hits_lower_grid": true,
+      "ci_hits_upper_grid": true
+    },
+    {
+      "model": "exact_corr_joint",
+      "mode": "joint",
+      "cutoff": 3.841458820694124,
+      "ci_low": -0.10287266774601667,
+      "ci_high": 0.0378321234221744,
+      "ci_hits_lower_grid": false,
+      "ci_hits_upper_grid": false
+    }
+  ],
+  "likelihood_ratio_tests": [
+    {
+      "mode": "curve",
+      "restricted_model": "exact_rho0_curve",
+      "unrestricted_model": "exact_corr_curve",
+      "restricted_log_likelihood": 7949.507614317877,
+      "unrestricted_log_likelihood": 7949.564330310255,
+      "lr_statistic": 0.11343198475697136,
+      "degrees_of_freedom": 1,
+      "p_value": 0.7362701971472585
+    },
+    {
+      "mode": "joint",
+      "restricted_model": "exact_rho0_joint",
+      "unrestricted_model": "exact_corr_joint",
+      "restricted_log_likelihood": 10646.287570155404,
+      "unrestricted_log_likelihood": 10646.699806118935,
+      "lr_statistic": 0.8244719270624046,
+      "degrees_of_freedom": 1,
+      "p_value": 0.36387591541491815
+    }
+  ],
+  "output_dir": "D:\\Jupyter_files\\Curry_curve_calibration\\im_corr_ou_1factor\\outputs",
+  "chart_dir": "D:\\Jupyter_files\\Curry_curve_calibration\\im_corr_ou_1factor\\outputs\\charts"
+}

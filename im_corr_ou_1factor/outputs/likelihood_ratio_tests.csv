@@ -1,0 +1,3 @@
+﻿mode,restricted_model,unrestricted_model,restricted_log_likelihood,unrestricted_log_likelihood,lr_statistic,degrees_of_freedom,p_value
+curve,exact_rho0_curve,exact_corr_curve,7949.507614317877,7949.564330310255,0.11343198475697136,1,0.7362701971472585
+joint,exact_rho0_joint,exact_corr_joint,10646.287570155404,10646.699806118935,0.8244719270624046,1,0.36387591541491815

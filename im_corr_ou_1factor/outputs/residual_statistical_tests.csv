@@ -1,0 +1,16 @@
+﻿model,test,statistic,p_value,lags
+exact_corr_curve,ljung_box,8932.390847448054,0.0,20
+exact_corr_curve,ljung_box_squared,1909.2554937642878,0.0,20
+exact_corr_curve,arch_lm,430.4793429089545,3.0351818671480062e-86,10
+exact_corr_joint,ljung_box,8999.597052001302,0.0,20
+exact_corr_joint,ljung_box_squared,1900.8884935896501,0.0,20
+exact_corr_joint,arch_lm,428.65499978559114,7.430067731001099e-86,10
+exact_rho0_curve,ljung_box,8930.534658741459,0.0,20
+exact_rho0_curve,ljung_box_squared,1882.9407317367566,0.0,20
+exact_rho0_curve,arch_lm,427.41847222430823,1.3630336057856654e-85,10
+exact_rho0_joint,ljung_box,8958.750490791599,0.0,20
+exact_rho0_joint,ljung_box_squared,1894.4657217196664,0.0,20
+exact_rho0_joint,arch_lm,428.035087809607,1.0071698269329417e-85,10
+legacy_curve,ljung_box,8934.999785338241,0.0,20
+legacy_curve,ljung_box_squared,1877.7460593800051,0.0,20
+legacy_curve,arch_lm,427.93599529681546,1.0573531329132743e-85,10

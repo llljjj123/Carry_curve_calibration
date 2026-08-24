@@ -1,0 +1,55 @@
+project:
+  raw_dir: data/raw
+  output_dir: outputs
+  chart_dir: outputs/charts
+
+data:
+  index_symbol: sh000852
+  futures_prefix: IM
+  start_date: "2022-07-22"
+  end_date: null
+  risk_free_rate: 0.014
+  futures_price_field: close
+  expiry_override_path: null
+  refresh: false
+  request_retries: 2
+
+calendar:
+  periods_per_year: 244
+  min_sessions_to_expiry: 5
+  special_exchange_closures:
+    - "2024-02-09"
+
+quality:
+  max_abs_implied_carry: 0.50
+  stale_run_length: 3
+  exclude_stale: false
+
+model:
+  # Fixed in this first version; it is not optimized.
+  stock_volatility: 0.25
+
+estimation:
+  optimizer_maxiter: 800
+  optimizer_starts: 5
+  profile_optimizer_starts: 1
+  random_seed: 852
+  rho_profile_grid:
+    start: -0.90
+    stop: 0.90
+    points: 13
+  joint_rho_refinement_grid:
+    start: -0.15
+    stop: 0.10
+    points: 26
+
+diagnostics:
+  evaluation_test_fraction: 0.20
+  representative_dates: 4
+  worst_dates: 4
+  acf_lags: 20
+  rolling_window_dates: 488
+  rolling_step_dates: 168
+  rolling_optimizer_starts: 1
+  rolling_enabled: true
+  innovation_correlation_window: 63

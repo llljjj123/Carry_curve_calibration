@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "im-corr-ou-1factor"
+version = "0.1.0"
+description = "Correlated one-factor OU model for CSI 1000 / IM implied carry"
+requires-python = ">=3.10"
+dependencies = [
+  "akshare",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "PyYAML",
+  "scipy",
+  "statsmodels",
+]
+
+[project.scripts]
+im-corr-ou-1factor = "im_corr_ou_1factor.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+
