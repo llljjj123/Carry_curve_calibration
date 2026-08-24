@@ -1,0 +1,9 @@
+﻿test,statistic,p_value,lags,model,n
+ljung_box_residual,153.84027214027427,1.1529979635031582e-22,20.0,two_factor_ou,
+ljung_box_squared_residual,358.9456789823267,6.373418278489393e-64,20.0,two_factor_ou,
+arch_lm,286.1230685805191,1.3282281976949314e-55,10.0,two_factor_ou,
+spearman_residual_vs_maturity,0.018081094595438513,0.2736785040353876,,two_factor_ou,3667.0
+ljung_box_residual,8934.990911885974,0.0,20.0,one_factor_ou,
+ljung_box_squared_residual,1877.7422946648926,0.0,20.0,one_factor_ou,
+arch_lm,427.9358502243939,1.0574284049534015e-85,10.0,one_factor_ou,
+spearman_residual_vs_maturity,0.029001124141438576,0.07909597730674833,,one_factor_ou,3667.0

@@ -1,0 +1,30 @@
+{
+  "data_start": "2022-07-22",
+  "data_end": "2026-08-21",
+  "accepted_observations": 3667,
+  "accepted_curve_dates": 991,
+  "excluded_observations": 297,
+  "training_scheme": "full",
+  "parameters": {
+    "kappa": 7.933135466822055,
+    "theta": 0.09310200921297467,
+    "eta": 0.8077188282385842,
+    "sigma_epsilon": 0.02078203789921996
+  },
+  "standard_errors": {
+    "kappa": 0.27498854112575255,
+    "theta": 0.0008751163276565006,
+    "eta": 0.027415618148417045,
+    "sigma_epsilon": 0.0002878616868443064
+  },
+  "hessian_stable": true,
+  "log_likelihood": 7950.936235707323,
+  "optimizer_converged": true,
+  "half_life_sessions": 21.319176101801503,
+  "current_filtered_state": 0.16257068412790926,
+  "current_filtered_std": 0.022473578236850297,
+  "evaluation_split_date": "2025-10-29",
+  "one_factor_shape_limitation_date_fraction": 0.27749747729566093,
+  "output_dir": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_ou_carry\\outputs",
+  "chart_dir": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_ou_carry\\outputs\\charts"
+}

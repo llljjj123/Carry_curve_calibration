@@ -1,0 +1,43 @@
+{
+  "data_start": "2022-07-22",
+  "data_end": "2026-08-21",
+  "accepted_observations": 3667,
+  "accepted_curve_dates": 991,
+  "excluded_observations": 297,
+  "training_scheme": "full",
+  "two_factor_parameters": {
+    "kappa_slow": 1.2409047966134241,
+    "kappa_fast": 44.32953558819525,
+    "theta": 0.08261737612606601,
+    "eta_slow": 0.0799282328223189,
+    "eta_fast": 2.852079153601385,
+    "sigma_epsilon": 0.005970235000294219
+  },
+  "two_factor_standard_errors": {
+    "kappa_slow": 0.06550685977458075,
+    "kappa_fast": 1.348590729934,
+    "theta": 0.0018302496065609375,
+    "eta_slow": 0.0037933504877568002,
+    "eta_fast": 0.1008562241877271,
+    "sigma_epsilon": 9.034995030433827e-05
+  },
+  "two_factor_hessian_stable": true,
+  "two_factor_log_likelihood": 10862.802697963396,
+  "one_factor_log_likelihood": 7950.936235707323,
+  "two_factor_aic": -21713.605395926792,
+  "one_factor_aic": -15893.872471414646,
+  "two_factor_bic": -21676.362620918364,
+  "one_factor_bic": -15869.043954742361,
+  "slow_half_life_sessions": 136.29402716324148,
+  "fast_half_life_sessions": 3.8152421362533886,
+  "current_slow_state": 0.05990951629435136,
+  "current_fast_state": -0.016141256167290972,
+  "current_filtered_carry": 0.1263856362531264,
+  "current_filtered_std": 0.02746968488911695,
+  "evaluation_split_date": "2025-10-29",
+  "observed_hump_or_u_date_fraction": 0.27749747729566093,
+  "two_factor_hump_capture_rate": 0.4,
+  "output_dir": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_2factor_ou_carry\\outputs",
+  "chart_dir": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_2factor_ou_carry\\outputs\\charts",
+  "weak_instantaneous_observability_date_fraction": 0.21493440968718466
+}

@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "im-ou-carry"
+version = "0.1.0"
+description = "One-factor OU model for the CSI 1000 / IM implied carry term structure"
+requires-python = ">=3.10"
+dependencies = [
+  "akshare",
+  "matplotlib",
+  "numpy",
+  "pandas",
+  "PyYAML",
+  "scipy",
+  "statsmodels",
+]
+
+[project.scripts]
+im-ou-carry = "im_ou_carry.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-ra"
+

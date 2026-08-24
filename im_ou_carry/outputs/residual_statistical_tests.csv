@@ -1,0 +1,5 @@
+﻿test,statistic,p_value,lags,n
+ljung_box_residual,8934.990911885974,0.0,20.0,
+ljung_box_squared_residual,1877.7422946648926,0.0,20.0,
+arch_lm,427.9358502243939,1.0574284049534015e-85,10.0,
+spearman_residual_vs_maturity,0.029001124141438576,0.07909597730674833,,3667.0
