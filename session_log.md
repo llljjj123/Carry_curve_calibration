@@ -399,3 +399,246 @@ Important files include:
 Under fixed 25% stock volatility, adding a free stock/carry shock correlation does not materially improve the one-factor carry model. The joint likelihood rules out very large correlations but does not reject zero. The curve-only likelihood cannot identify correlation at all.
 
 Reasonable follow-up work would be sensitivity analysis over fixed stock-volatility assumptions, maturity-dependent observation noise, or a future separation of historical `(kappa_P, theta_P)` from risk-neutral `(kappa_Q, theta_Q)`. The existing one-factor shape limitation should remain explicit when interpreting any such extension.
+
+---
+
+# Session Update - American Put on the Carry Curve
+
+## Scope completed
+
+An isolated pricing project was implemented at:
+
+- `D:\Jupyter_files\Curry_curve_calibration\carry_put_pricing`
+
+It prices the optional component described in `put_on_carry.md`, whose exercise payoff is
+
+$$
+G_t
+=
+S_t\left[
+e^{(r-q_{0,T})(T-t)}
+-\frac{F_{t,T}}{S_t}
+\right]^+.
+$$
+
+The separate linear futures leg is not included in the reported option price.
+
+## Agreed modelling choices
+
+The implementation uses the following conventions agreed before coding:
+
+- The carry state follows the calibrated independent two-factor OU model.
+- The exact stochastic integrated-carry expression is used for future futures prices.
+- The full-sample calibrated two-factor OU parameters are provisionally treated as risk-neutral parameters.
+- The initial locked carry is inferred from the observed spot and futures quote rather than the model-fitted futures price.
+- The latest filtered slow and fast factor states are used for the example.
+- Exercise is allowed on every trading session, with one session equal to `1/244` year.
+- The risk-free rate is `r=0.014` and the supplied GBM volatility is `sigma=0.25`.
+- Spot and both carry-factor Brownian shocks are mutually independent.
+
+The historically estimated OU dynamics are not automatically risk-neutral. Treating them as risk-neutral is an explicit prototype assumption rather than a resolved calibration result.
+
+## Exact integrated-carry formula
+
+Under
+
+$$
+c_t=\theta+x_{s,t}+x_{f,t},
+$$
+
+$$
+dx_{j,t}=-\kappa_jx_{j,t}dt+\eta_jdW_t^j,
+$$
+
+and
+
+$$
+\frac{dS_t}{S_t}=(r-c_t)dt+\sigma dW_t^S,
+$$
+
+define
+
+$$
+I_{t,T}=\int_t^T c_u\,du.
+$$
+
+The carry integral is conditionally Gaussian, so the exact futures/forward ratio is
+
+$$
+\frac{F_{t,T}}{S_t}
+=e^{r(T-t)}E_t^Q[e^{-I_{t,T}}]
+=\exp\left(r\tau-m_I+\frac12v_I\right),
+$$
+
+where
+
+$$
+m_I
+=\theta\tau
++A(\kappa_s,\tau)x_{s,t}
++A(\kappa_f,\tau)x_{f,t},
+\qquad
+A(\kappa,\tau)=\frac{1-e^{-\kappa\tau}}{\kappa},
+$$
+
+and
+
+$$
+v_I
+=\sum_{j\in\{s,f\}}
+\frac{\eta_j^2}{\kappa_j^2}
+\left[
+\tau
+-\frac{2(1-e^{-\kappa_j\tau})}{\kappa_j}
++\frac{1-e^{-2\kappa_j\tau}}{2\kappa_j}
+\right].
+$$
+
+Thus the exact annualized implied carry includes the Gaussian convexity correction:
+
+$$
+q_{t,T}^{\mathrm{exact}}
+=\frac{m_I-\tfrac12v_I}{T-t}.
+$$
+
+## State reduction and pricing method
+
+The payoff is homogeneous in the spot level:
+
+$$
+V(t,S,x_s,x_f)=S\,v(t,x_s,x_f).
+$$
+
+Zero Brownian-shock correlation alone does not make spot and carry levels independent, because the spot drift contains stochastic carry. The state reduction instead follows from payoff homogeneity. After normalization, the one-step continuation value is
+
+$$
+\frac{C_t}{S_t}
+=E_t^Q\left[
+e^{-\int_t^{t+\Delta t}c_u du}
+v(t+\Delta t,X_{t+\Delta t})
+\right].
+$$
+
+The spot level is therefore only a final scale factor, and the GBM volatility cancels from this particular price under the zero-correlation assumption. Volatility remains an explicit function input for interface clarity and future correlated extensions.
+
+The primary numerical method is a two-dimensional deterministic backward induction over the slow and fast OU states:
+
+1. Construct a rectangular slow/fast factor grid.
+2. Use exact one-session OU transition and integrated-carry moments.
+3. Apply Gaussian exponential tilting to the carry-weighted continuation expectation.
+4. Evaluate the resulting expectation with tensor Gauss-Hermite quadrature and bilinear interpolation.
+5. At each trading session, take the maximum of immediate exercise and continuation value.
+
+This is conceptually similar to Longstaff-Schwartz because both solve the stopping problem backward. The difference is that this implementation calculates conditional continuation values from the known Gaussian transition law instead of estimating them with regressions on simulated paths.
+
+The independent Gaussian transition and bilinear interpolation are separable. The implementation therefore applies successive one-dimensional slow and fast quadrature transforms rather than a slower explicit quadrature-order-squared loop.
+
+Exercise at inception is fixed to zero by the contractual identity that the locked and prevailing futures quotes coincide at inception. Any small exact-model-versus-observed initial futures difference is reported as a model-fit diagnostic rather than converted into immediate exercise value.
+
+## Agreed IM2609 example
+
+The latest valid and most liquid near contract was selected from the cached 2026-08-21 curve:
+
+| Input | Value |
+|---|---:|
+| Valuation date | 2026-08-21 |
+| Contract | IM2609 |
+| Expiry | 2026-09-18 |
+| Trading sessions to expiry | 20 |
+| $T$ | 0.0819672131 |
+| $S_0$ | 7601.804 |
+| Observed $F_{0,T}$ | 7527.0 |
+| Locked $q_{0,T}$ | 0.1346461842 |
+| $r$ | 0.014 |
+| $\sigma$ | 0.25 |
+| Latest slow state | +0.0599095163 |
+| Latest fast state | -0.0161412562 |
+
+The calibrated OU inputs were:
+
+| Parameter | Value |
+|---|---:|
+| $\kappa_{slow}$ | 1.2409047966 |
+| $\kappa_{fast}$ | 44.3295355882 |
+| $\theta$ | 0.0826173761 |
+| $\eta_{slow}$ | 0.0799282328 |
+| $\eta_{fast}$ | 2.8520791536 |
+
+At the initial filtered state, the exact stochastic-carry formula implies:
+
+- model-implied carry: `0.1340041029`;
+- model-implied futures: `7527.3961536`;
+- model-minus-observed futures difference: `+0.3961536` points.
+
+The small difference is retained as a diagnostic. The contractual locked carry remains the observed `0.1346461842`.
+
+## Price and numerical convergence
+
+The base numerical configuration uses:
+
+- 301 slow-factor grid nodes;
+- 401 fast-factor grid nodes;
+- a six-stationary-standard-deviation half-width;
+- Gauss-Hermite quadrature order 43.
+
+The resulting American optional-component price is:
+
+$$
+\boxed{V_0=36.2794369}
+$$
+
+or `0.0047724773` per unit of spot, equal to approximately `0.477248%` of spot.
+
+Grid convergence was:
+
+| Grid | Slow nodes | Fast nodes | Price |
+|---|---:|---:|---:|
+| Coarse | 201 | 281 | 36.2944617 |
+| Base | 301 | 401 | 36.2794369 |
+| Fine | 401 | 501 | 36.2744292 |
+
+The absolute base-minus-fine difference was `0.0050077` index points. At the base grid, nearby quadrature orders 39 through 47 spanned `0.0051714` points. These checks address numerical discretization only and do not measure economic model uncertainty.
+
+## Validation and deliverables
+
+Validation in `D:\miniconda3\envs\GuoYuan\python.exe` produced nine passing tests covering:
+
+- stable exact OU integral loadings and variances;
+- seeded integrated-carry moment simulation;
+- the agreed initial exact-forward calculation;
+- zero optional value for a one-session contract;
+- invariance to spot volatility under the stated assumptions;
+- linear scaling when spot and futures are scaled together;
+- zero value under deterministic flat carry locked at the same rate;
+- positive value and model-basis reporting for the agreed example.
+
+No new Python packages were installed.
+
+Important files are:
+
+- `carry_put_pricing/README.md`
+- `carry_put_pricing/pyproject.toml`
+- `carry_put_pricing/src/carry_put_pricing/models.py`
+- `carry_put_pricing/src/carry_put_pricing/analytics.py`
+- `carry_put_pricing/src/carry_put_pricing/pricer.py`
+- `carry_put_pricing/analysis/run_example.py`
+- `carry_put_pricing/tests/test_analytics.py`
+- `carry_put_pricing/tests/test_pricer.py`
+- `carry_put_pricing/outputs/example_result.json`
+- `carry_put_pricing/outputs/grid_convergence.csv`
+- `carry_put_pricing/outputs/quadrature_convergence.csv`
+- `carry_put_pricing/outputs/exercise_summary.csv`
+
+## Remaining limitations and next steps
+
+The largest unresolved issue is the pricing-measure interpretation. The calibrated two-factor OU transition parameters were estimated historically and are only provisionally used under $Q$. A production valuation should calibrate risk-neutral factor dynamics or specify carry-factor risk premia.
+
+Other current limitations are:
+
+- no spot/carry or slow/fast shock correlation;
+- daily Bermudan exercise rather than mathematically continuous exercise;
+- clipped interpolation at remote factor-grid boundaries;
+- a constant risk-free rate;
+- no separate treatment of the linear futures leg or its settlement mechanics.
+
+Natural follow-up work is an independent Longstaff-Schwartz benchmark, risk-neutral sensitivity scenarios for the OU parameters, and extension to nonzero correlations if a defensible correlation specification becomes available.

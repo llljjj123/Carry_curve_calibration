@@ -1,0 +1,4 @@
+configuration,slow_grid_points,fast_grid_points,stationary_stddev_width,quadrature_order,minimum_half_width,exercise_tolerance,price,normalized_price,difference_from_fine
+coarse,201,281,6.0,43,0.01,1e-12,36.29446174836741,0.004774453767601402,0.020032552097291045
+base,301,401,6.0,43,0.01,1e-12,36.27943691642809,0.004772477285184949,0.005007720157969686
+fine,401,501,6.0,43,0.01,1e-12,36.27442919627012,0.004771818531005288,0.0

@@ -1,0 +1,61 @@
+{
+  "example": {
+    "valuation_date": "2026-08-21",
+    "contract": "IM2609",
+    "expiry": "2026-09-18",
+    "source_directory": "D:\\Jupyter_files\\Curry_curve_calibration\\im_2factor_ou_carry\\outputs"
+  },
+  "contract": {
+    "initial_spot": 7601.804,
+    "initial_futures": 7527.0,
+    "sessions_to_expiry": 20,
+    "periods_per_year": 244
+  },
+  "ou_parameters": {
+    "kappa_slow": 1.240904796613424,
+    "kappa_fast": 44.32953558819525,
+    "theta": 0.082617376126066,
+    "eta_slow": 0.0799282328223189,
+    "eta_fast": 2.852079153601385
+  },
+  "initial_state": {
+    "slow": 0.0599095162943513,
+    "fast": -0.0161412561672909
+  },
+  "gbm_parameters": {
+    "risk_free_rate": 0.014,
+    "volatility": 0.25
+  },
+  "risk_neutral_assumption": "Historically calibrated OU dynamics are used as risk-neutral dynamics for this prototype.",
+  "base_numerical_configuration": {
+    "slow_grid_points": 301,
+    "fast_grid_points": 401,
+    "stationary_stddev_width": 6.0,
+    "quadrature_order": 43,
+    "minimum_half_width": 0.01,
+    "exercise_tolerance": 1e-12
+  },
+  "numerical_diagnostics": {
+    "absolute_base_minus_fine_grid_price": 0.005007720157969686,
+    "quadrature_price_range_orders_39_to_47": 0.0051714095725969855
+  },
+  "result": {
+    "price": 36.27943691642809,
+    "normalized_price": 0.004772477285184949,
+    "continuation_value": 36.27943691642809,
+    "inception_exercise_value": 0.0,
+    "locked_carry": 0.13464618422090385,
+    "model_initial_carry": 0.13400410287910286,
+    "model_initial_futures": 7527.396153560659,
+    "observed_initial_futures": 7527.0,
+    "initial_futures_model_error": 0.39615356065860396,
+    "maturity": 0.08196721311475409,
+    "exercise_steps": 20,
+    "slow_grid_min": -0.304415829569732,
+    "slow_grid_max": 0.304415829569732,
+    "fast_grid_min": -1.8174029811254522,
+    "fast_grid_max": 1.8174029811254522,
+    "spot_volatility_input": 0.25,
+    "spot_volatility_affects_price": false
+  }
+}
