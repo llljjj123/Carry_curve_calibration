@@ -1,0 +1,2 @@
+price,normalized_price,continuation_value,inception_exercise_value,locked_carry,model_initial_carry,model_initial_futures,observed_initial_futures,initial_futures_model_error,maturity,exercise_steps,slow_grid_min,slow_grid_max,fast_grid_min,fast_grid_max,spot_volatility_input,spot_volatility_affects_price
+63.857528016241105,0.008256833940992398,63.857528016241105,0.0,0.1314279619400136,0.1281697187164672,7421.916402150524,7413.2,8.716402150524118,0.36065573770491804,88,-0.3038446630605096,0.3038446630605096,-2.083728234828187,2.083728234828187,0.2771085586107142,False

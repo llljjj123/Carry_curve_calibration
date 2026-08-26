@@ -642,3 +642,148 @@ Other current limitations are:
 - no separate treatment of the linear futures leg or its settlement mechanics.
 
 Natural follow-up work is an independent Longstaff-Schwartz benchmark, risk-neutral sensitivity scenarios for the OU parameters, and extension to nonzero correlations if a defensible correlation specification becomes available.
+
+# Session Update — 2026-08-26 — Configurable Carry-Put Demo and Boundary Diagnostics
+
+## Scope completed
+
+Today we turned the carry-put example into a configurable demonstration, investigated the fast-factor parameter boundaries, extended the Demo's calendar handling to 2027-dated contracts, and clarified how the main two-factor project separates final estimation from rolling diagnostics.
+
+The user-facing workflow, calendar, and pricing changes were made under:
+
+- `D:\LuJingjian\Jupyter_files\GuoYuan\Studies\carry_rate\Demo`
+
+The only shared-estimator change was a backward-compatible optional `eta_fast_upper_bound` argument whose default remains 3; the Demo passes 6 explicitly.
+
+The agreed valuation scope remains the American carry-put **optional component only**. The separate linear futures leg is deliberately excluded because the option component is the part of interest for this product.
+
+## Flexible Demo inputs
+
+The Demo now accepts three user inputs:
+
+- valuation date;
+- calibration sample size in usable trading dates;
+- underlying IM futures contract.
+
+The sample size includes the valuation date. For example, a sample size of 250 selects the 250 accepted curve dates ending on the requested valuation date and supplies 249 close-to-close spot returns.
+
+The inputs are exposed both in `Carry_Put_Demo.ipynb` and through `demo_workflow.py`, for example:
+
+```powershell
+& 'D:\miniforge3\envs\spyder-env\python.exe' -B demo_workflow.py `
+  --valuation-date 2026-08-10 `
+  --sample-size 250 `
+  --futures-contract IM2612
+```
+
+The selected CFFEX contract's expiry is inferred from its contract code and checked against the quote used for the locked carry. Calibration carries, historical spot volatility, the filtered state, the locked carry, and option maturity are all aligned to the same requested valuation date and sample.
+
+## Fast-factor volatility recalibration and profile
+
+The earlier Demo calibration placed `eta_fast` at its upper bound of 3. We therefore made the estimator's fast-volatility cap configurable while preserving 3 as the main project's backward-compatible default. The Demo recalibrates with a cap of 6.
+
+After the cap-6 calibration, the Demo runs a fixed-`eta_fast` profile. At every profile value, the other five parameters are re-optimized and the option is repriced. This is a proper profile-likelihood calculation rather than a sensitivity calculation that freezes all other fitted parameters.
+
+For the current 2026-08-10 / 488-date / IM2612 output:
+
+| Item | Result |
+|---|---:|
+| Sample | 2024-08-05 to 2026-08-10 |
+| Curve dates | 488 |
+| Accepted observations | 1,807 |
+| `kappa_slow` | 2.57648937 |
+| `kappa_fast` | 62.57648937 |
+| `eta_slow` | 0.11495544 |
+| `eta_fast` | 3.88517353 |
+| `theta` | 0.10862242 |
+| `sigma_epsilon` | 0.00592795 |
+| Log likelihood | 5348.42992969 |
+
+The fast volatility is now interior under the cap of 6. Relative to fixing `eta_fast` at 3, the optimized cap-6 result gains approximately 12.19 log-likelihood units. The grid-based 95% profile-supported region is approximately 3.75 to 4.00.
+
+The mean-reversion gap `kappa_fast - kappa_slow`, however, reaches its separate upper bound of 60. Thus increasing the volatility cap resolved the original `eta_fast` boundary but revealed continuing weak identification or pressure toward still-faster mean reversion. This is a model-risk warning, especially for very short-dated options, but it is not by itself evidence that the optimizer failed.
+
+## IM2612 option result
+
+We changed the option example from the short-dated IM2609 contract to IM2612 so that the option is less dominated by the least stable very-fast carry dynamics.
+
+For valuation on 2026-08-10:
+
+| Input or result | Value |
+|---|---:|
+| Contract | IM2612 |
+| Inferred expiry | 2026-12-18 |
+| Sessions to expiry | 88 |
+| Spot | 7733.9 |
+| Observed futures | 7413.2 |
+| Locked carry | 0.1314279619 |
+| Historical spot volatility | 0.2771085586 |
+| Option-only price | 63.8575280 |
+| Model-minus-observed initial futures | +8.7164022 |
+
+The fixed-`eta_fast` likelihood-supported grid maps to option prices of approximately 62.60 to 65.58. This interval measures the effect of the profiled fast-volatility uncertainty on the option within the fitted model; it is not a full valuation confidence interval.
+
+The base-versus-fine-grid price difference is approximately 0.04413 index points, and quadrature orders 39 through 47 span approximately 0.00191 points.
+
+## Contract expiry and 2027 calendar handling
+
+The pricing workflow now accepts different IM contracts and automatically infers the standard CFFEX expiry date as the third Friday of the contract month, subject to calendar adjustment and validation against the available quote.
+
+We found that the installed `chinese_calendar` package supports dates only through 2026. The shared `im_2factor_ou_carry` calendar catches this limitation and silently falls back to ordinary weekdays for 2027, which would overcount sessions around Chinese holidays. From 2026-08-21 to IM2703 expiry, that fallback returned 144 sessions.
+
+The Demo no longer uses the weekday fallback. It contains an explicit company exchange calendar for 2027–2028 and raises `CalendarCoverageError` outside covered years. Under this calendar:
+
+- IM2703 expiry is inferred as 2027-03-19;
+- there are 138 sessions from 2026-08-21 to expiry;
+- there are 147 sessions from 2026-08-10 to expiry;
+- the corrected session count is used in both calibration maturities and option pricing.
+
+The 2027–2028 company calendar is provisional and should be confirmed or replaced when the official CFFEX holiday schedule becomes available.
+
+## Notebook module-cache fix
+
+Running the notebook after editing `demo_workflow.py` initially produced:
+
+```text
+run_demo() got an unexpected keyword argument 'futures_contract'
+```
+
+The function on disk already accepted that argument. The error came from Jupyter retaining an older imported module in the live kernel. The notebook setup cell now removes and reimports all Demo-local modules before calling the workflow, including `demo_workflow`, `profile_analysis`, `option_pricing`, `calibration`, `demo_quality`, and `calendar_utils`.
+
+The current notebook inputs were preserved as:
+
+```python
+VALUATION_DATE = "2026-08-10"
+SAMPLE_SIZE = 488
+FUTURES_CONTRACT = "IM2612"
+```
+
+The setup cell and subsequent cells should be rerun to synchronize all embedded notebook outputs with these inputs. A complete fixed-eta profile can take several minutes.
+
+## Main-project calibration comparison
+
+We inspected `im_2factor_ou_carry` because its headline parameter estimates did not appear to hit bounds. The full-sample setup uses 991 curve dates from 2022-07-22 through 2026-08-21, 3,667 accepted observations, and 12 optimizer starts. Its estimates are interior:
+
+- `kappa_slow = 1.24090`;
+- `kappa_fast = 44.32954`;
+- mean-reversion gap `= 43.08863 < 60`;
+- `eta_fast = 2.85208 < 3`.
+
+All 12 optimizer starts converge to the same full-sample solution and the numerical Hessian is stable.
+
+The rolling diagnostics tell a different story. They use five overlapping 488-date windows, spaced by 126 dates with the latest endpoint appended. In four of the five windows, `eta_fast` reaches the original cap of 3. Therefore the boundary pressure is concentrated in more recent rolling samples or regimes rather than being a general failure of the estimator.
+
+The calibration roles were clarified as follows:
+
+1. The **full-sample calibration** produces the main project's final reported parameters. Its two-factor optimization uses 12 starting guesses.
+2. The **rolling-window calibrations** are diagnostics for stability and boundary behavior. Each rolling window uses four optimizer starts and retains the best likelihood solution; those estimates do not overwrite or influence the full-sample parameters.
+
+With five windows and four starts per window, the rolling two-factor diagnostic performs 20 complete optimization searches. The pipeline also contains train/test benchmark refits, but these belong to model evaluation rather than final parameter selection.
+
+## Validation and current status
+
+The Demo's five focused tests pass, Ruff passes, and the notebook structure is valid. Earlier established checks also included 12 calibration tests and nine pricing tests. No new Python package was installed.
+
+The main Demo outputs are stored under `Demo\outputs`, including the JSON summary, parameter tables, fixed-eta likelihood/price profile, convergence diagnostics, and charts.
+
+The clean next diagnostic, if needed, is to rerun an identical cap-6 specification over 244-, 488-, 732-, and 991-date windows using the same calendar and optimizer-start policy. This would show directly whether the remaining mean-reversion-gap boundary relaxes as the estimation history lengthens and how much that changes the IM2612 option price.

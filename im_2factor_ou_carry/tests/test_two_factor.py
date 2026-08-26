@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from im_2factor_ou_carry.kalman import maturity_loading
 from im_2factor_ou_carry.two_factor import (
@@ -6,11 +7,20 @@ from im_2factor_ou_carry.two_factor import (
     transition,
     two_factor_kalman_filter,
 )
+from im_2factor_ou_carry.two_factor_estimation import _parameter_bounds
 from im_2factor_ou_carry.two_factor_simulation import simulate_two_factor_panel
 
 
 def _gap(start, end):
     return np.busday_count(np.datetime64(start.date()), np.datetime64(end.date())) / 244
+
+
+def test_fast_eta_bound_is_separate_from_slow_eta_bound() -> None:
+    bounds = _parameter_bounds(6.0)
+    assert np.exp(bounds[3][1]) == pytest.approx(3.0)
+    assert np.exp(bounds[4][1]) == pytest.approx(6.0)
+    with pytest.raises(ValueError):
+        _parameter_bounds(0.0)
 
 
 def test_exact_transition_and_ordered_parameters() -> None:
@@ -44,4 +54,3 @@ def test_two_factor_filter_recovers_latent_combined_state() -> None:
     assert np.sqrt(np.mean((fitted_combined - true_combined) ** 2)) < 0.02
     assert len(result.innovations) == len(panel)
     assert np.isfinite(result.innovations["standardized_innovation"]).all()
-

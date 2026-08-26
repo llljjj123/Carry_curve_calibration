@@ -50,6 +50,20 @@ def unpack(values: np.ndarray) -> TwoFactorParams:
     )
 
 
+def _parameter_bounds(eta_fast_upper_bound: float) -> list[tuple[float, float]]:
+    """Optimizer bounds, with a separately configurable fast-factor volatility."""
+    if not np.isfinite(eta_fast_upper_bound) or eta_fast_upper_bound <= 1e-4:
+        raise ValueError("eta_fast_upper_bound must be finite and greater than 1e-4")
+    return [
+        (np.log(0.01), np.log(20.0)),  # kappa_slow
+        (np.log(0.01), np.log(60.0)),  # kappa_fast - kappa_slow
+        (-0.50, 0.50),  # theta
+        (np.log(1e-4), np.log(3.0)),  # eta_slow
+        (np.log(1e-4), np.log(eta_fast_upper_bound)),  # eta_fast
+        (np.log(1e-5), np.log(0.50)),  # sigma_epsilon
+    ]
+
+
 def initial_guesses(panel: pd.DataFrame, count: int, seed: int = 852) -> list[TwoFactorParams]:
     carry = panel["implied_carry"].dropna().to_numpy(dtype=float)
     theta = float(np.clip(np.median(carry), -0.25, 0.25))
@@ -94,17 +108,11 @@ def estimate_two_factor_ou(
     maxiter: int = 1500,
     seed: int = 852,
     compute_standard_errors: bool = True,
+    eta_fast_upper_bound: float = 3.0,
 ) -> TwoFactorEstimationResult:
     """Estimate independent slow/fast OU factors with enforced ordering."""
     dataset: TwoFactorDataset = make_dataset(panel, gap_function)
-    bounds = [
-        (np.log(0.01), np.log(20.0)),
-        (np.log(0.01), np.log(60.0)),
-        (-0.50, 0.50),
-        (np.log(1e-4), np.log(3.0)),
-        (np.log(1e-4), np.log(3.0)),
-        (np.log(1e-5), np.log(0.50)),
-    ]
+    bounds = _parameter_bounds(eta_fast_upper_bound)
 
     def objective(values: np.ndarray) -> float:
         try:
@@ -198,4 +206,3 @@ def two_factor_parameter_table(result: TwoFactorEstimationResult) -> pd.DataFram
     table["slow_half_life_sessions"] = 244.0 * np.log(2.0) / result.params.kappa_slow
     table["fast_half_life_sessions"] = 244.0 * np.log(2.0) / result.params.kappa_fast
     return table
-
