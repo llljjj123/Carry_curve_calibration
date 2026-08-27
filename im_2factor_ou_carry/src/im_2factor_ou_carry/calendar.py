@@ -1,9 +1,8 @@
 """CFFEX-oriented trading-session and contract-expiry utilities.
 
-The supplied ``workdays_count.py`` counts Chinese weekdays that are not public
-holidays and makes a special correction for 2024-02-09.  This module follows
-that convention while using the mathematically useful interval ``(start, end]``:
-there are zero sessions remaining on the expiry date itself.
+Trading sessions are Chinese weekdays that are not public holidays, with an
+explicit exchange-closure correction for 2024-02-09. Session counts use the
+interval ``(start, end]``, so expiry itself has zero remaining sessions.
 """
 
 from __future__ import annotations
@@ -92,4 +91,3 @@ def year_fraction(start: object, end: object, periods_per_year: int = 244, **kwa
     if periods_per_year <= 0:
         raise ValueError("periods_per_year must be positive")
     return trading_days_between(start, end, **kwargs) / float(periods_per_year)
-
