@@ -4,15 +4,14 @@
 假设在时间$t = 0$，客户以价格$F_{0,T}$买入标的为$S$的股指期货，期货交割日为$T$，记此时此股指期货对应分红率为$q_{0,T}$，我们有$F_{0,T} = e^{\left(r - q_{0,T}\right)T}S_0$。在任意时间$\tau \in [0,T]$，假设此时分红率为$q_{\tau,T}$，客户拥有以价格$\max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)}S_\tau,F_{\tau,T}\right\}$平仓的权利，即客户在时间$\tau$时的盈亏为
 
 $$
-\begin{equation}
 \max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)}S_\tau,F_{\tau,T}\right\} - F_{0,T}
-\end{equation}
 $$
 
 进一步拆开上述方程，我们有：
 $$
 \begin{align}
-(1) &= \max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)}S_\tau - F_{\tau,T},0\right\} + F_{\tau,T} - F_{0,T} \\
+& \max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)}S_\tau,F_{\tau,T}\right\} - F_{0,T} \\
+    &= \max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)}S_\tau - F_{\tau,T},0\right\} + F_{\tau,T} - F_{0,T} \\
     &= \max\left\{e^{\left(r - q_{0,T}\right)\left(T-\tau\right)} - e^{\left(r - q_{\tau,T}\right)\left(T-\tau\right)},0\right\}S_\tau + F_{\tau,T} - F_{0,T}
 \end{align}
 $$ 
