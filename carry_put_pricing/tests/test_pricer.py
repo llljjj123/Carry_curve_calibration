@@ -41,6 +41,18 @@ def test_one_session_contract_has_no_optional_value() -> None:
         numerical=FAST_CONFIG,
     )
     assert result.price == pytest.approx(0.0, abs=1.0e-14)
+    assert result.slow_curve_delta.pathwise_delta == pytest.approx(
+        0.0, abs=1.0e-14
+    )
+    assert result.slow_curve_delta.bump_and_value_delta == pytest.approx(
+        0.0, abs=1.0e-14
+    )
+    assert result.fast_curve_delta.pathwise_delta == pytest.approx(
+        0.0, abs=1.0e-14
+    )
+    assert result.fast_curve_delta.bump_and_value_delta == pytest.approx(
+        0.0, abs=1.0e-14
+    )
 
 
 def test_spot_volatility_cancels_from_price() -> None:
@@ -68,6 +80,12 @@ def test_price_scales_with_spot_and_futures_together() -> None:
     )
     assert scaled.locked_carry == pytest.approx(base.locked_carry)
     assert scaled.price == pytest.approx(2.5 * base.price, rel=1.0e-12)
+    assert scaled.slow_curve_delta.pathwise_delta == pytest.approx(
+        base.slow_curve_delta.pathwise_delta, rel=1.0e-12
+    )
+    assert scaled.fast_curve_delta.pathwise_delta == pytest.approx(
+        base.fast_curve_delta.pathwise_delta, rel=1.0e-12
+    )
 
 
 def test_zero_volatility_flat_carry_has_zero_value() -> None:
@@ -100,3 +118,20 @@ def test_agreed_example_is_positive_and_model_basis_is_reported() -> None:
     assert result.inception_exercise_value == 0.0
     assert result.initial_futures_model_error == pytest.approx(0.396153560659, abs=1.0e-9)
     assert len(result.exercise_summary) == CONTRACT.sessions_to_expiry - 1
+
+
+def test_factor_deltas_are_converted_to_futures_equivalents() -> None:
+    result = price_american_carry_put(
+        CONTRACT, PARAMS, STATE, GBMParams(0.014, 0.25), numerical=FAST_CONFIG
+    )
+    for delta in (result.slow_curve_delta, result.fast_curve_delta):
+        assert delta.pathwise_option_factor_sensitivity > 0.0
+        assert delta.model_futures_factor_sensitivity < 0.0
+        assert delta.pathwise_delta < 0.0
+        assert delta.bump_and_value_delta < 0.0
+        assert delta.pathwise_delta == pytest.approx(
+            delta.pathwise_option_factor_sensitivity
+            / delta.model_futures_factor_sensitivity,
+            rel=1.0e-12,
+        )
+        assert delta.absolute_method_difference < 0.005

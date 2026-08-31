@@ -15,12 +15,18 @@ from .models import (
     NumericalConfig,
     TwoFactorOUParams,
 )
-from .pricer import ExerciseStepSummary, PricingResult, price_american_carry_put
+from .pricer import (
+    ExerciseStepSummary,
+    FuturesEquivalentCurveDelta,
+    PricingResult,
+    price_american_carry_put,
+)
 
 __all__ = [
     "CarryPutContract",
     "ExerciseStepSummary",
     "FactorState",
+    "FuturesEquivalentCurveDelta",
     "GBMParams",
     "NumericalConfig",
     "PricingResult",

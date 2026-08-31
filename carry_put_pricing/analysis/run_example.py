@@ -124,6 +124,10 @@ def main() -> None:
     pd.DataFrame([asdict(row) for row in base.exercise_summary]).to_csv(
         output_dir / "exercise_summary.csv", index=False
     )
+    delta_comparison = pd.DataFrame(
+        [asdict(base.slow_curve_delta), asdict(base.fast_curve_delta)]
+    )
+    delta_comparison.to_csv(output_dir / "curve_delta_comparison.csv", index=False)
     payload = {
         "example": metadata,
         "contract": asdict(contract),
@@ -151,6 +155,8 @@ def main() -> None:
     print(convergence.to_string(index=False))
     print("\nQuadrature convergence")
     print(quadrature_convergence.to_string(index=False))
+    print("\nFutures-equivalent curve deltas")
+    print(delta_comparison.to_string(index=False))
 
 
 if __name__ == "__main__":

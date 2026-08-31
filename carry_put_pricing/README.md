@@ -100,6 +100,34 @@ The spot volatility remains an explicit `GBMParams` input, as requested, but it
 does not affect this payoff under zero spot/carry shock correlation. The spot
 level scales the normalized price, while its Brownian volatility cancels.
 
+## Futures-equivalent curve deltas
+
+The option state contains separate slow and fast carry factors, while one IM
+futures quote cannot identify both factors by itself. The pricer therefore
+reports two directional hedge ratios. For factor $j\in\{s,f\}$,
+
+$$
+\Delta_j^F
+=\frac{\partial V/\partial x_j}{\partial F_{t,T}/\partial x_j},
+\qquad
+\frac{\partial F_{t,T}}{\partial x_j}
+=-A(\kappa_j,T-t)F_{t,T},
+$$
+
+holding spot and the other carry factor fixed. Each number is expressed in
+option points per futures-price point and is calculated in two ways:
+
+1. a differentiated backward induction that follows the exercise policy of the
+   original option value; and
+2. a local grid bump-and-value ratio using nearby factor states and their exact
+   model futures prices.
+
+The derivative recursion never solves a separate stopping problem. At an
+exercise node it uses the exercise-payoff derivative; at a continuation node it
+uses the differentiated continuation value. The locked inception carry remains
+fixed under both factor bumps, so the calculation measures the existing
+contract rather than restriking it.
+
 ## Main API
 
 ```python
@@ -158,6 +186,8 @@ Generated files are written to `outputs/`:
 - `grid_convergence.csv`: coarse/base/fine numerical comparison;
 - `quadrature_convergence.csv`: quadrature-order stability at the base grid;
 - `exercise_summary.csv`: exercise-region diagnostics by exercise date.
+- `curve_delta_comparison.csv`: slow and fast futures-equivalent deltas from
+  pathwise backward induction and local bump-and-value.
 
 For the cached 2026-08-21 inputs, the base-grid result is **36.2794 index
 points**, or **0.477248% of spot**. The base-versus-fine grid difference is
@@ -176,7 +206,9 @@ $env:PYTHONDONTWRITEBYTECODE = '1'
 Tests cover stable exact-integral formulas, a seeded moment check, the agreed
 initial forward calculation, zero terminal optionality, spot-volatility
 invariance, spot scaling, deterministic flat-carry behavior, and output
-diagnostics.
+diagnostics. They also verify delta sign/conversion, agreement between the two
+delta methods, zero delta for a one-session zero-value contract, and invariance
+of the futures-equivalent hedge ratios under proportional spot/futures scaling.
 
 ## Scope limitations
 

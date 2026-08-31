@@ -37,6 +37,24 @@ class ExerciseStepSummary:
 
 
 @dataclass(frozen=True)
+class FuturesEquivalentCurveDelta:
+    """One factor-state sensitivity expressed per futures-price point."""
+
+    factor: str
+    pathwise_delta: float
+    bump_and_value_delta: float
+    absolute_method_difference: float
+    pathwise_option_factor_sensitivity: float
+    model_futures_factor_sensitivity: float
+    bump_down_factor_state: float
+    bump_up_factor_state: float
+    bump_down_option_value: float
+    bump_up_option_value: float
+    bump_down_model_futures: float
+    bump_up_model_futures: float
+
+
+@dataclass(frozen=True)
 class PricingResult:
     """Price, model checks, grid information, and exercise diagnostics."""
 
@@ -57,6 +75,8 @@ class PricingResult:
     fast_grid_max: float
     spot_volatility_input: float
     spot_volatility_affects_price: bool
+    slow_curve_delta: FuturesEquivalentCurveDelta
+    fast_curve_delta: FuturesEquivalentCurveDelta
     exercise_summary: tuple[ExerciseStepSummary, ...]
 
     def as_dict(self, *, include_exercise_summary: bool = True) -> dict[str, object]:
@@ -163,6 +183,8 @@ def _continuation_on_grid(
     dt: float,
     quadrature_nodes: np.ndarray,
     quadrature_weights: np.ndarray,
+    *,
+    enforce_nonnegative: bool = True,
 ) -> np.ndarray:
     """Evaluate E[e^-integral(c) next_value(X')] on the current grid.
 
@@ -202,19 +224,23 @@ def _continuation_on_grid(
         + step.fast_integral_loading * fast_grid[None, :]
     )
     carry_discount = np.exp(-mean_integral + 0.5 * step.integral_variance)
-    return np.maximum(carry_discount * expectation, 0.0)
+    result = carry_discount * expectation
+    if enforce_nonnegative:
+        return np.maximum(result, 0.0)
+    return result
 
 
-def _exercise_value(
+def _exercise_value_and_factor_derivatives(
     slow_grid: np.ndarray,
     fast_grid: np.ndarray,
     remaining_time: float,
     locked_carry: float,
     params: TwoFactorOUParams,
     risk_free_rate: float,
-) -> np.ndarray:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     if remaining_time == 0.0:
-        return np.zeros((len(slow_grid), len(fast_grid)))
+        zeros = np.zeros((len(slow_grid), len(fast_grid)))
+        return zeros, zeros.copy(), zeros.copy()
     locked_ratio = exp((risk_free_rate - locked_carry) * remaining_time)
     market_ratio = exact_forward_ratio(
         params,
@@ -223,7 +249,98 @@ def _exercise_value(
         remaining_time,
         risk_free_rate,
     )
-    return np.maximum(locked_ratio - market_ratio, 0.0)
+    in_the_money = locked_ratio > market_ratio
+    exercise = np.maximum(locked_ratio - market_ratio, 0.0)
+    slow_derivative = np.where(
+        in_the_money,
+        ou_integral_loading(params.kappa_slow, remaining_time) * market_ratio,
+        0.0,
+    )
+    fast_derivative = np.where(
+        in_the_money,
+        ou_integral_loading(params.kappa_fast, remaining_time) * market_ratio,
+        0.0,
+    )
+    return exercise, slow_derivative, fast_derivative
+
+
+def _futures_equivalent_curve_delta(
+    *,
+    factor: str,
+    option_factor_sensitivity: float,
+    futures_factor_sensitivity: float,
+    time_zero_interpolator: RegularGridInterpolator,
+    slow_grid: np.ndarray,
+    fast_grid: np.ndarray,
+    contract: CarryPutContract,
+    params: TwoFactorOUParams,
+    initial_state: FactorState,
+    risk_free_rate: float,
+) -> FuturesEquivalentCurveDelta:
+    """Compare a tangent delta with a local grid bump along one factor axis."""
+    if factor == "slow":
+        grid = slow_grid
+        initial_factor = initial_state.slow
+        other_factor = initial_state.fast
+    elif factor == "fast":
+        grid = fast_grid
+        initial_factor = initial_state.fast
+        other_factor = initial_state.slow
+    else:  # pragma: no cover - internal programming guard
+        raise ValueError(f"Unknown factor: {factor}")
+
+    grid_step = float(grid[1] - grid[0])
+    down_factor = max(float(grid[0]), initial_factor - grid_step)
+    up_factor = min(float(grid[-1]), initial_factor + grid_step)
+    if not down_factor < up_factor:  # pragma: no cover - grid construction protects this
+        raise ValueError(f"Cannot form a local {factor}-factor bump")
+
+    if factor == "slow":
+        down_state = FactorState(down_factor, other_factor)
+        up_state = FactorState(up_factor, other_factor)
+        interpolation_points = np.array(
+            [[down_factor, other_factor], [up_factor, other_factor]]
+        )
+    else:
+        down_state = FactorState(other_factor, down_factor)
+        up_state = FactorState(other_factor, up_factor)
+        interpolation_points = np.array(
+            [[other_factor, down_factor], [other_factor, up_factor]]
+        )
+
+    normalized_values = time_zero_interpolator(interpolation_points)
+    down_option = contract.initial_spot * float(normalized_values[0])
+    up_option = contract.initial_spot * float(normalized_values[1])
+    down_futures = exact_forward_price(
+        contract.initial_spot,
+        params,
+        down_state,
+        contract.maturity,
+        risk_free_rate,
+    )
+    up_futures = exact_forward_price(
+        contract.initial_spot,
+        params,
+        up_state,
+        contract.maturity,
+        risk_free_rate,
+    )
+    bump_delta = (up_option - down_option) / (up_futures - down_futures)
+    pathwise_delta = option_factor_sensitivity / futures_factor_sensitivity
+    return FuturesEquivalentCurveDelta(
+        factor=factor,
+        pathwise_delta=float(pathwise_delta),
+        bump_and_value_delta=float(bump_delta),
+        absolute_method_difference=abs(float(pathwise_delta - bump_delta)),
+        pathwise_option_factor_sensitivity=float(option_factor_sensitivity),
+        model_futures_factor_sensitivity=float(futures_factor_sensitivity),
+        bump_down_factor_state=float(down_factor),
+        bump_up_factor_state=float(up_factor),
+        bump_down_option_value=float(down_option),
+        bump_up_option_value=float(up_option),
+        bump_down_model_futures=float(down_futures),
+        bump_up_model_futures=float(up_futures),
+    )
 
 
 def price_american_carry_put(
@@ -265,6 +382,8 @@ def price_american_carry_put(
 
     # At maturity both forward-growth terms are one, so the payoff is zero.
     next_values = np.zeros((len(slow_grid), len(fast_grid)))
+    next_slow_derivative = np.zeros_like(next_values)
+    next_fast_derivative = np.zeros_like(next_values)
     summaries: list[ExerciseStepSummary] = []
     for elapsed_sessions in range(contract.sessions_to_expiry - 1, 0, -1):
         continuation = _continuation_on_grid(
@@ -277,14 +396,46 @@ def price_american_carry_put(
             nodes,
             weights,
         )
-        remaining_sessions = contract.sessions_to_expiry - elapsed_sessions
-        exercise = _exercise_value(
+        slow_derivative_expectation = _continuation_on_grid(
+            next_slow_derivative,
             slow_grid,
             fast_grid,
-            remaining_sessions / contract.periods_per_year,
-            locked_carry,
             ou_params,
-            gbm_params.risk_free_rate,
+            step,
+            dt,
+            nodes,
+            weights,
+            enforce_nonnegative=False,
+        )
+        fast_derivative_expectation = _continuation_on_grid(
+            next_fast_derivative,
+            slow_grid,
+            fast_grid,
+            ou_params,
+            step,
+            dt,
+            nodes,
+            weights,
+            enforce_nonnegative=False,
+        )
+        slow_continuation_derivative = (
+            step.slow_decay * slow_derivative_expectation
+            - step.slow_integral_loading * continuation
+        )
+        fast_continuation_derivative = (
+            step.fast_decay * fast_derivative_expectation
+            - step.fast_integral_loading * continuation
+        )
+        remaining_sessions = contract.sessions_to_expiry - elapsed_sessions
+        exercise, slow_exercise_derivative, fast_exercise_derivative = (
+            _exercise_value_and_factor_derivatives(
+                slow_grid,
+                fast_grid,
+                remaining_sessions / contract.periods_per_year,
+                locked_carry,
+                ou_params,
+                gbm_params.risk_free_rate,
+            )
         )
         exercise_region = exercise > continuation + config.exercise_tolerance
         summaries.append(
@@ -295,6 +446,21 @@ def price_american_carry_put(
                 maximum_normalized_exercise_value=float(exercise.max()),
                 maximum_normalized_continuation_value=float(continuation.max()),
             )
+        )
+        # Differentiate the original Snell envelope. The derivative does not
+        # solve a second optimal-stopping problem: it follows the exercise
+        # policy selected by the primal option value. At exact ties we use the
+        # continuation-side derivative.
+        exercise_policy = exercise > continuation
+        next_slow_derivative = np.where(
+            exercise_policy,
+            slow_exercise_derivative,
+            slow_continuation_derivative,
+        )
+        next_fast_derivative = np.where(
+            exercise_policy,
+            fast_exercise_derivative,
+            fast_continuation_derivative,
         )
         next_values = np.maximum(exercise, continuation)
 
@@ -308,11 +474,62 @@ def price_american_carry_put(
         nodes,
         weights,
     )
-    time_zero_interpolator = _clipped_interpolator(slow_grid, fast_grid, time_zero_continuation_grid)
+    time_zero_slow_derivative_expectation = _continuation_on_grid(
+        next_slow_derivative,
+        slow_grid,
+        fast_grid,
+        ou_params,
+        step,
+        dt,
+        nodes,
+        weights,
+        enforce_nonnegative=False,
+    )
+    time_zero_fast_derivative_expectation = _continuation_on_grid(
+        next_fast_derivative,
+        slow_grid,
+        fast_grid,
+        ou_params,
+        step,
+        dt,
+        nodes,
+        weights,
+        enforce_nonnegative=False,
+    )
+    time_zero_slow_derivative_grid = (
+        step.slow_decay * time_zero_slow_derivative_expectation
+        - step.slow_integral_loading * time_zero_continuation_grid
+    )
+    time_zero_fast_derivative_grid = (
+        step.fast_decay * time_zero_fast_derivative_expectation
+        - step.fast_integral_loading * time_zero_continuation_grid
+    )
+    time_zero_interpolator = _clipped_interpolator(
+        slow_grid,
+        fast_grid,
+        time_zero_continuation_grid,
+    )
+    time_zero_slow_derivative_interpolator = _clipped_interpolator(
+        slow_grid,
+        fast_grid,
+        time_zero_slow_derivative_grid,
+    )
+    time_zero_fast_derivative_interpolator = _clipped_interpolator(
+        slow_grid,
+        fast_grid,
+        time_zero_fast_derivative_grid,
+    )
+    initial_point = np.array([[initial_state.slow, initial_state.fast]])
     normalized_continuation = float(
-        time_zero_interpolator(np.array([[initial_state.slow, initial_state.fast]]))[0]
+        time_zero_interpolator(initial_point)[0]
     )
     normalized_continuation = max(normalized_continuation, 0.0)
+    normalized_slow_derivative = float(
+        time_zero_slow_derivative_interpolator(initial_point)[0]
+    )
+    normalized_fast_derivative = float(
+        time_zero_fast_derivative_interpolator(initial_point)[0]
+    )
 
     # The contractual exercise value is exactly zero at inception. A curve-fit
     # residual between the exact OU formula and the observed quote is diagnostic.
@@ -326,6 +543,36 @@ def price_american_carry_put(
         gbm_params.risk_free_rate,
     )
     model_initial_carry = exact_implied_carry(ou_params, initial_state, contract.maturity)
+    slow_futures_factor_sensitivity = -ou_integral_loading(
+        ou_params.kappa_slow, contract.maturity
+    ) * model_initial_futures
+    fast_futures_factor_sensitivity = -ou_integral_loading(
+        ou_params.kappa_fast, contract.maturity
+    ) * model_initial_futures
+    slow_curve_delta = _futures_equivalent_curve_delta(
+        factor="slow",
+        option_factor_sensitivity=contract.initial_spot * normalized_slow_derivative,
+        futures_factor_sensitivity=slow_futures_factor_sensitivity,
+        time_zero_interpolator=time_zero_interpolator,
+        slow_grid=slow_grid,
+        fast_grid=fast_grid,
+        contract=contract,
+        params=ou_params,
+        initial_state=initial_state,
+        risk_free_rate=gbm_params.risk_free_rate,
+    )
+    fast_curve_delta = _futures_equivalent_curve_delta(
+        factor="fast",
+        option_factor_sensitivity=contract.initial_spot * normalized_fast_derivative,
+        futures_factor_sensitivity=fast_futures_factor_sensitivity,
+        time_zero_interpolator=time_zero_interpolator,
+        slow_grid=slow_grid,
+        fast_grid=fast_grid,
+        contract=contract,
+        params=ou_params,
+        initial_state=initial_state,
+        risk_free_rate=gbm_params.risk_free_rate,
+    )
     summaries.sort(key=lambda row: row.elapsed_sessions)
     return PricingResult(
         price=contract.initial_spot * normalized_price,
@@ -345,5 +592,7 @@ def price_american_carry_put(
         fast_grid_max=float(fast_grid[-1]),
         spot_volatility_input=gbm_params.volatility,
         spot_volatility_affects_price=False,
+        slow_curve_delta=slow_curve_delta,
+        fast_curve_delta=fast_curve_delta,
         exercise_summary=tuple(summaries),
     )

@@ -334,6 +334,36 @@ Spot volatility remains an explicit `GBMParams` input but cancels from this homo
 
 At inception, contractual exercise is fixed to zero because locked and prevailing observed futures coincide. A model-implied-versus-observed initial futures difference is reported as a fit diagnostic, not converted into exercise value.
 
+### Futures-equivalent slow and fast curve deltas
+
+The pricer now reports directional deltas for both OU carry factors, converted into option points per IM futures-price point. For `j` equal to slow or fast,
+
+```text
+Delta_j^F = (partial V / partial x_j) / (partial F_t,T / partial x_j),
+partial F_t,T / partial x_j = -A(kappa_j,T-t) F_t,T,
+A(kappa,tau) = (1-exp(-kappa*tau))/kappa.
+```
+
+Each direction holds spot and the other carry factor fixed. These are two scenario hedge ratios rather than one unique scalar delta: a single futures quote cannot identify both latent factor states, and one futures position cannot simultaneously neutralize arbitrary slow and fast shocks.
+
+Two methods are implemented and compared:
+
+1. **Differentiated backward induction (`pathwise_delta`).** The derivative follows the exercise policy selected by the original Snell envelope. At an exercise node it uses the exercise-payoff derivative; at a continuation node it uses the differentiated continuation recursion. It does not solve a second optimal-stopping problem for the derivative. Exact exercise/continuation ties use the continuation-side derivative.
+2. **Local grid bump-and-value (`bump_and_value_delta`).** The time-zero value grid is evaluated one local grid step above and below the initial state along one factor axis. The option-value change is divided by the change in the exact model futures price over those same states.
+
+The locked inception carry `q_0,T` is frozen under both calculations. Recomputing it from a bumped futures quote would re-strike the contract and would not be a valid Greek. Both conversions use the exact model futures mapping, not the observed/model initial-basis residual.
+
+For the fixed `IM2609` base-grid example:
+
+| Factor direction | Pathwise delta | Bump-and-value delta | Absolute difference |
+|---|---:|---:|---:|
+| Slow | -0.42744969 | -0.42793891 | 0.00048923 |
+| Fast | -0.20766012 | -0.20839806 | 0.00073794 |
+
+Increasing either carry factor raises the carry-put value and lowers the futures price, so both futures-equivalent deltas are negative. For a long carry put, the corresponding one-direction-at-a-time delta hedge is to buy about `0.42745` futures units for a pure slow shock or `0.20766` futures units for a pure fast shock, before applying contract multipliers and position sizes.
+
+Across the coarse/base/fine grids, the pathwise slow deltas are approximately `-0.42831`, `-0.42745`, and `-0.42799`; the fast deltas are approximately `-0.20886`, `-0.20766`, and `-0.20836`. This is a numerical convergence diagnostic, not economic model uncertainty. The base comparison is exported to `outputs/curve_delta_comparison.csv`, and the structured results are also available as `PricingResult.slow_curve_delta` and `PricingResult.fast_curve_delta`.
+
 ### Fixed full-sample example
 
 The script `analysis/run_example.py` reads the latest full-sample two-factor parameters/states and selects the valid nearest contract from saved curves. Current example:
@@ -345,8 +375,10 @@ The script `analysis/run_example.py` reads the latest full-sample two-factor par
 - model initial futures `7527.39615`, model-minus-observed `+0.39615` points;
 - base-minus-fine grid difference about `0.00501` points;
 - quadrature orders 39–47 span about `0.00517` points.
+- slow futures-equivalent delta: pathwise `-0.42744969`, bump-and-value `-0.42793891`;
+- fast futures-equivalent delta: pathwise `-0.20766012`, bump-and-value `-0.20839806`.
 
-Tests cover stable analytical moments, seeded moment simulation, exact-forward regression values, zero one-session optionality, volatility invariance, spot scaling, deterministic flat carry, and initial-basis reporting.
+Tests cover stable analytical moments, seeded moment simulation, exact-forward regression values, zero one-session optionality, volatility invariance, spot scaling, deterministic flat carry, initial-basis reporting, delta sign and futures conversion, agreement between the two delta methods, zero delta for a one-session zero-value contract, and hedge-ratio invariance under proportional spot/futures scaling.
 
 ### Economic limitations
 
@@ -462,7 +494,7 @@ Historical validation recorded in `session_log.md`:
 
 - main two-factor project: 11 passing tests at the completed-project checkpoint, clean Ruff and compilation checks;
 - correlated one-factor project: 16 passing tests, 21 parsed Python files, 22 nonempty CSVs, 10 charts;
-- carry-put pricer: 9 passing tests;
+- carry-put pricer: 10 passing tests after adding the slow/fast futures-equivalent delta implementation;
 - Demo: five focused tests plus Ruff; earlier shared calibration/pricing suites also passed.
 
 Because code and generated Demo outputs have since changed, rerun the relevant current test suites before claiming a new final validation.
