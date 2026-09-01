@@ -22,7 +22,7 @@ $$
 
 我将其称为put因为这是对$e^{\left(r - q_{\tau,T}\right)\left(T-\tau\right)}$的put，对于分红率$q$本身则是call。
 
-文章以下部分则将介绍此文件夹中具体包含了哪些文件，以及我们如何处理上述期权定价。
+文章以下部分则将介绍此文件夹中具体包含了哪些文件，以及我们如何处理上述期权定价及delta计算。
 
 # 结构
 本项目包含5个文件夹，其中`im_ou_carry`, `im_2factor_ou_carry`和`im_corr_ou_1factor`是分红率（即$q$，这里被叫做`carry rate`）模型；`carry_put_pricing`是期权定价模型，其中对应的分红率模型为`im_2factor_ou_carry`；`Demo`则是一个简单的场景演示，里面包含了从拟合分红率到期权定价的全过程。
@@ -43,13 +43,13 @@ $$
 
 约定
 $$
-B(t) = \frac{1-e^{-\kappa(t)}}{\kappa}\\
-C(t) = \int_0^t B(s)^2 ds
+A(t) = \frac{1-e^{-\kappa \,t}}{\kappa}\\
+C(t) = \int_0^t A(s)^2 ds
 $$
 根据$F_{t,T} = e^{\left(r - q_{t,T}\right)\left(T-t\right)}St = \mathbb{E}^*_t\left(S_T\right)$，我们可以得出市场隐含分红率$q_{t,T}$和instantaneous分红率$c_t$的关系：
 
 $$
-q_{t,T}=\theta+\frac{B\left(T-t\right)}{(T-t)}(c_t-\theta) - \frac{\eta^2}{2\left(T-t\right)}C\left(T-t\right)
+q_{t,T}=\theta+\frac{A\left(T-t\right)}{(T-t)}(c_t-\theta) - \frac{\eta^2}{2\left(T-t\right)}C\left(T-t\right)
 $$
 
 忽略掉convexity项$\frac{\eta^2}{2\left(T-t\right)}C\left(T-t\right)$，加入市场噪音，我们用于Kalman filter的公式为
