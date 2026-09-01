@@ -128,6 +128,40 @@ uses the differentiated continuation value. The locked inception carry remains
 fixed under both factor bumps, so the calculation measures the existing
 contract rather than restriking it.
 
+## Fixed-carry scale delta
+
+The pricer also reports `fixed_carry_scale_delta`, defined by proportionally
+scaling spot and futures together while holding the current implied carry and
+both OU factor states fixed:
+
+$$
+S_t(\lambda)=\lambda S_t,\qquad
+F_{t,T}(\lambda)=\lambda F_{t,T}.
+$$
+
+Because the futures/spot ratio is unchanged, this perturbation fixes
+$q_{t,T}$. The locked inception carry is also unchanged when the contract's
+initial spot and observed futures quote are scaled by the same factor. Payoff
+homogeneity gives
+
+$$
+V(t,\lambda S_t,x_s,x_f)=\lambda V(t,S_t,x_s,x_f),
+$$
+
+so, using the model-implied futures price as the reference consistently with
+the curve-delta conversion,
+
+$$
+\Delta_{\mathrm{scale},q\ \mathrm{fixed}}
+=\frac{dV}{dF_{t,T}}
+=\frac{V}{F_{t,T}^{\mathrm{model}}}.
+$$
+
+This positive scale sensitivity is not a futures-only partial derivative with
+spot fixed. It measures an overall index-level move at an unchanged carry
+curve. The slow and fast curve deltas instead keep spot fixed and perturb one
+OU carry factor at a time.
+
 ## Main API
 
 ```python

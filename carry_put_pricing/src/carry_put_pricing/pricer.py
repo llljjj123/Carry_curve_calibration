@@ -75,6 +75,7 @@ class PricingResult:
     fast_grid_max: float
     spot_volatility_input: float
     spot_volatility_affects_price: bool
+    fixed_carry_scale_delta: float
     slow_curve_delta: FuturesEquivalentCurveDelta
     fast_curve_delta: FuturesEquivalentCurveDelta
     exercise_summary: tuple[ExerciseStepSummary, ...]
@@ -543,6 +544,12 @@ def price_american_carry_put(
         gbm_params.risk_free_rate,
     )
     model_initial_carry = exact_implied_carry(ou_params, initial_state, contract.maturity)
+    price = contract.initial_spot * normalized_price
+    # Scale spot and futures by the same positive factor while holding their
+    # ratio, the locked carry, and both OU factor states fixed. Homogeneity then
+    # gives dV/dF = V/F along this co-scaling direction. This is distinct from a
+    # futures-only delta with spot fixed and from either factor curve delta.
+    fixed_carry_scale_delta = price / model_initial_futures
     slow_futures_factor_sensitivity = -ou_integral_loading(
         ou_params.kappa_slow, contract.maturity
     ) * model_initial_futures
@@ -575,7 +582,7 @@ def price_american_carry_put(
     )
     summaries.sort(key=lambda row: row.elapsed_sessions)
     return PricingResult(
-        price=contract.initial_spot * normalized_price,
+        price=price,
         normalized_price=normalized_price,
         continuation_value=contract.initial_spot * normalized_continuation,
         inception_exercise_value=inception_exercise_value,
@@ -592,6 +599,7 @@ def price_american_carry_put(
         fast_grid_max=float(fast_grid[-1]),
         spot_volatility_input=gbm_params.volatility,
         spot_volatility_affects_price=False,
+        fixed_carry_scale_delta=fixed_carry_scale_delta,
         slow_curve_delta=slow_curve_delta,
         fast_curve_delta=fast_curve_delta,
         exercise_summary=tuple(summaries),

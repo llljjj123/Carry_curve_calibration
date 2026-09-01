@@ -53,6 +53,7 @@ def test_one_session_contract_has_no_optional_value() -> None:
     assert result.fast_curve_delta.bump_and_value_delta == pytest.approx(
         0.0, abs=1.0e-14
     )
+    assert result.fixed_carry_scale_delta == pytest.approx(0.0, abs=1.0e-14)
 
 
 def test_spot_volatility_cancels_from_price() -> None:
@@ -80,6 +81,15 @@ def test_price_scales_with_spot_and_futures_together() -> None:
     )
     assert scaled.locked_carry == pytest.approx(base.locked_carry)
     assert scaled.price == pytest.approx(2.5 * base.price, rel=1.0e-12)
+    assert base.fixed_carry_scale_delta == pytest.approx(
+        base.price / base.model_initial_futures, rel=1.0e-12
+    )
+    assert scaled.fixed_carry_scale_delta == pytest.approx(
+        base.fixed_carry_scale_delta, rel=1.0e-12
+    )
+    assert (scaled.price - base.price) / (
+        scaled.model_initial_futures - base.model_initial_futures
+    ) == pytest.approx(base.fixed_carry_scale_delta, rel=1.0e-12)
     assert scaled.slow_curve_delta.pathwise_delta == pytest.approx(
         base.slow_curve_delta.pathwise_delta, rel=1.0e-12
     )
@@ -117,6 +127,7 @@ def test_agreed_example_is_positive_and_model_basis_is_reported() -> None:
     assert result.price > 0.0
     assert result.inception_exercise_value == 0.0
     assert result.initial_futures_model_error == pytest.approx(0.396153560659, abs=1.0e-9)
+    assert result.fixed_carry_scale_delta > 0.0
     assert len(result.exercise_summary) == CONTRACT.sessions_to_expiry - 1
 
 

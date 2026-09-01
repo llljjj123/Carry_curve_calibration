@@ -3,7 +3,7 @@
     "valuation_date": "2026-08-21",
     "contract": "IM2609",
     "expiry": "2026-09-18",
-    "source_directory": "D:\\Jupyter_files\\Curry_curve_calibration\\im_2factor_ou_carry\\outputs"
+    "source_directory": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_2factor_ou_carry\\outputs"
   },
   "contract": {
     "initial_spot": 7601.804,
@@ -56,6 +56,35 @@
     "fast_grid_min": -1.8174029811254522,
     "fast_grid_max": 1.8174029811254522,
     "spot_volatility_input": 0.25,
-    "spot_volatility_affects_price": false
+    "spot_volatility_affects_price": false,
+    "fixed_carry_scale_delta": 0.004819652928624854,
+    "slow_curve_delta": {
+      "factor": "slow",
+      "pathwise_delta": -0.42744968555340856,
+      "bump_and_value_delta": -0.4279389107325841,
+      "absolute_method_difference": 0.0004892251791755453,
+      "pathwise_option_factor_sensitivity": 250.7669690893016,
+      "model_futures_factor_sensitivity": -586.6584479168345,
+      "bump_down_factor_state": 0.05788007743055311,
+      "bump_up_factor_state": 0.0619389551581495,
+      "bump_down_option_value": 35.77314733613186,
+      "bump_up_option_value": 36.792144736754885,
+      "bump_down_model_futures": 7528.586835175564,
+      "bump_up_model_futures": 7526.20566025768
+    },
+    "fast_curve_delta": {
+      "factor": "fast",
+      "pathwise_delta": -0.20766011919352123,
+      "bump_and_value_delta": -0.20839806071644187,
+      "absolute_method_difference": 0.0007379415229206432,
+      "pathwise_option_factor_sensitivity": 34.330139020630156,
+      "model_futures_factor_sensitivity": -165.31888334628877,
+      "bump_down_factor_state": -0.025228271072918144,
+      "bump_up_factor_state": -0.007054241261663655,
+      "bump_down_option_value": 35.970835392552154,
+      "bump_up_option_value": 36.59696951961103,
+      "bump_down_model_futures": 7528.898558631579,
+      "bump_up_model_futures": 7525.894048297336
+    }
   }
 }

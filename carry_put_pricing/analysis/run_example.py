@@ -157,6 +157,8 @@ def main() -> None:
     print(quadrature_convergence.to_string(index=False))
     print("\nFutures-equivalent curve deltas")
     print(delta_comparison.to_string(index=False))
+    print("\nFixed-carry scale delta (spot and model futures co-scaled)")
+    print(base.fixed_carry_scale_delta)
 
 
 if __name__ == "__main__":
