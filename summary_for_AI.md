@@ -4,7 +4,16 @@
 
 This repository studies the implied-carry term structure of CSI 1000 index futures (CFFEX `IM` contracts), develops one- and two-factor Ornstein–Uhlenbeck (OU) state-space models for that curve, tests whether stock/carry shock correlation is identifiable, and prices an American-style put on the carry curve.
 
-This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the five implementation folders. The root `README.md` was deliberately not used because the user is editing it separately.
+This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the five implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work.
+
+## 2026-09-01 delta update
+
+- The proposed quantity `C_t/F_t,T` was checked carefully. It is not the ordinary partial derivative with respect to futures while spot is fixed; that immediate-exercise derivative is `-1` in the in-the-money region. Instead, `C/F` is the proportional scale sensitivity when spot and futures are multiplied by the same factor and current implied carry is fixed. By homogeneity, the corresponding full-option sensitivity is `V/F`.
+- `carry_put_pricing` now exposes `PricingResult.fixed_carry_scale_delta = V/F_model`. The model-implied futures price is used so the denominator is consistent with the slow/fast curve-delta conversions. This scale delta fixes the futures/spot ratio, locked carry, and both OU states; it is distinct from a carry-curve hedge ratio.
+- The fixed `IM2609` example has price `36.27943692`, model futures `7527.39615356`, and fixed-carry scale delta `0.00481965293`. The pricing suite still has 10 passing tests, including analytical `V/F`, proportional co-scaling, and finite-difference checks; Ruff passed and the standard example was regenerated.
+- `Demo/Carry_Put_Demo.ipynb` now contains an executed futures-equivalent curve-delta subsection immediately below option pricing. It reports slow and fast pathwise/differentiated-backward-induction deltas, local bump-and-value checks, factor sensitivities, futures sensitivities, and the fact that spot is held fixed. The fixed-carry scale delta is intentionally not displayed because the Demo's current focus is changes in carry `q`.
+- The current 2026-08-10 / 488-date / `IM2612` Demo rerun gives slow deltas `-0.33235550` pathwise and `-0.33238170` bump-and-value, and fast deltas `-0.01406941` pathwise and `-0.01404718` bump-and-value. The notebook executed end to end and regenerated the Demo CSV/JSON/PNG snapshot.
+- The user added a `## Delta部分` section to the root `README.md`. At the user's explicit request, a `### 数值计算方法` subsection was appended without changing the user's prior writing. It documents the derivative conventions, exercise/continuation derivative handling, continuation-side tie convention, exact-model futures conversion, local one-grid-step bump, and directional hedge interpretation.
 
 The five implementation folders are:
 
@@ -14,7 +23,7 @@ The five implementation folders are:
 4. `carry_put_pricing`: isolated numerical library and fixed example for the American carry-put optional component.
 5. `Demo`: configurable end-to-end calibration and carry-put demonstration that reuses the two-factor and pricing engines.
 
-Do not modify or revert the root `README.md`. Also assume the worktree may already contain user changes, especially in `AGENTS.md`, `Demo/Carry_Put_Demo.ipynb`, and `Demo/outputs`; inspect `git status` before editing anything.
+Do not modify or revert the root `README.md` unless the user explicitly asks. It is user-owned writing, including the `## Delta部分` section. Also assume the worktree may already contain user changes, especially in `AGENTS.md`, `README.md`, `Demo/Carry_Put_Demo.ipynb`, and `Demo/outputs`; inspect `git status` before editing anything.
 
 ## Repository dependency map
 
@@ -364,6 +373,16 @@ Increasing either carry factor raises the carry-put value and lowers the futures
 
 Across the coarse/base/fine grids, the pathwise slow deltas are approximately `-0.42831`, `-0.42745`, and `-0.42799`; the fast deltas are approximately `-0.20886`, `-0.20766`, and `-0.20836`. This is a numerical convergence diagnostic, not economic model uncertainty. The base comparison is exported to `outputs/curve_delta_comparison.csv`, and the structured results are also available as `PricingResult.slow_curve_delta` and `PricingResult.fast_curve_delta`.
 
+### Fixed-carry scale delta
+
+The pricer also reports a separate proportional scale sensitivity:
+
+```text
+fixed_carry_scale_delta = V / F_model.
+```
+
+This derivative follows the path `S(lambda)=lambda*S` and `F(lambda)=lambda*F`, holding the futures/spot ratio and therefore current implied carry fixed. The locked inception carry and both OU factor states are also fixed. It is positive and measures an overall index-level co-move; it is not the futures-only partial derivative with spot fixed and does not replace either slow or fast carry-curve delta. The field is retained in structured pricing results but is intentionally omitted from the current Demo notebook presentation because that presentation focuses on `q` shocks.
+
 ### Fixed full-sample example
 
 The script `analysis/run_example.py` reads the latest full-sample two-factor parameters/states and selects the valid nearest contract from saved curves. Current example:
@@ -375,10 +394,11 @@ The script `analysis/run_example.py` reads the latest full-sample two-factor par
 - model initial futures `7527.39615`, model-minus-observed `+0.39615` points;
 - base-minus-fine grid difference about `0.00501` points;
 - quadrature orders 39–47 span about `0.00517` points.
+- fixed-carry scale delta: `0.00481965293` using the model initial futures price;
 - slow futures-equivalent delta: pathwise `-0.42744969`, bump-and-value `-0.42793891`;
 - fast futures-equivalent delta: pathwise `-0.20766012`, bump-and-value `-0.20839806`.
 
-Tests cover stable analytical moments, seeded moment simulation, exact-forward regression values, zero one-session optionality, volatility invariance, spot scaling, deterministic flat carry, initial-basis reporting, delta sign and futures conversion, agreement between the two delta methods, zero delta for a one-session zero-value contract, and hedge-ratio invariance under proportional spot/futures scaling.
+Tests cover stable analytical moments, seeded moment simulation, exact-forward regression values, zero one-session optionality, volatility invariance, spot scaling, deterministic flat carry, initial-basis reporting, delta sign and futures conversion, agreement between the two curve-delta methods, zero delta for a one-session zero-value contract, hedge-ratio invariance under proportional spot/futures scaling, and the fixed-carry `V/F_model` scale-delta identity.
 
 ### Economic limitations
 
@@ -420,7 +440,7 @@ Important code:
 - `option_pricing.py`: converts calibration output into pricing inputs, runs base/coarse/fine and quadrature convergence, and exports results.
 - `profile_analysis.py`: fixed-`eta_fast` profile; the other five parameters are optimized at every grid point and the option is repriced.
 - `demo_workflow.py`: CLI, orchestration, charts, warnings, and `demo_summary.json`.
-- `Carry_Put_Demo.ipynb`: narrative interface; its setup cell deliberately clears Demo-local modules from `sys.modules` before importing, preventing stale Jupyter module-cache errors.
+- `Carry_Put_Demo.ipynb`: narrative interface; its setup cell deliberately clears Demo-local modules from `sys.modules` before importing, preventing stale Jupyter module-cache errors. The option-pricing section is followed by an executed slow/fast futures-equivalent curve-delta table. It displays only carry-factor deltas and deliberately omits the fixed-carry scale delta.
 
 ### Current latest Demo snapshot
 
@@ -439,11 +459,11 @@ Current calibration:
 - sample 2024-08-05 through 2026-08-10;
 - 488 curve dates, 1,807 accepted observations, 28 contracts, 487 returns;
 - historical spot volatility `0.27710856`;
-- `kappa_slow = 2.57648752`;
-- `kappa_fast = 62.57648752`;
+- `kappa_slow = 2.57648937`;
+- `kappa_fast = 62.57648937`;
 - `theta = 0.10862241`;
-- `eta_slow = 0.11495527`;
-- `eta_fast = 3.88517181`;
+- `eta_slow = 0.11495544`;
+- `eta_fast = 3.88517353`;
 - `sigma_epsilon = 0.00592794`;
 - log likelihood `5348.42993`;
 - carry RMSE `46.7809` bp and futures RMSE `10.0540` points (posterior/in-sample fit metrics);
@@ -457,8 +477,10 @@ Current `IM2612` option result:
 
 - expiry 2026-12-18, 88 sessions;
 - spot `7733.9`, futures `7413.2`, locked carry `0.13142796`;
-- option-only price `63.85748` points (`0.825683%` of spot);
-- model initial futures `7421.91641`, model-minus-observed `+8.71641` points;
+- option-only price `63.85753` points (`0.825683%` of spot);
+- model initial futures `7421.91640`, model-minus-observed `+8.71640` points;
+- slow futures-equivalent delta: pathwise `-0.33235550`, bump-and-value `-0.33238170`;
+- fast futures-equivalent delta: pathwise `-0.01406941`, bump-and-value `-0.01404718`;
 - base-minus-fine difference `0.04413` points;
 - nearby quadrature span `0.00191` points.
 
@@ -494,8 +516,8 @@ Historical validation recorded in `session_log.md`:
 
 - main two-factor project: 11 passing tests at the completed-project checkpoint, clean Ruff and compilation checks;
 - correlated one-factor project: 16 passing tests, 21 parsed Python files, 22 nonempty CSVs, 10 charts;
-- carry-put pricer: 10 passing tests after adding the slow/fast futures-equivalent delta implementation;
-- Demo: five focused tests plus Ruff; earlier shared calibration/pricing suites also passed.
+- carry-put pricer: 10 passing tests after adding the slow/fast futures-equivalent deltas and fixed-carry scale delta; Ruff passed and the fixed example was regenerated on 2026-09-01;
+- Demo: five focused tests plus Ruff historically; the full notebook executed successfully on 2026-09-01 after adding the curve-delta section, and the current generated snapshot was refreshed.
 
 Because code and generated Demo outputs have since changed, rerun the relevant current test suites before claiming a new final validation.
 
@@ -539,7 +561,7 @@ The clean next diagnostics discussed in the session are:
 ## Practical instructions for a future AI
 
 - Begin by reading this file, `session_log.md`, and `git status`.
-- Do not read or edit the root `README.md` unless the user explicitly asks; it is user-owned work in progress.
+- Do not read or edit the root `README.md` unless the user explicitly asks; it is user-owned work in progress. In particular, preserve the user's existing `## Delta部分` wording and the appended `### 数值计算方法` explanation unless a future request explicitly targets them.
 - Preserve all unrelated changes and generated artifacts.
 - Use cached raw data unless the user explicitly wants a refreshed download.
 - Keep trading-session carry time, option/volatility time, and discounting time explicit; do not silently switch to calendar-day/365 conventions.
