@@ -17,6 +17,9 @@ import pandas as pd
 from calibration import (
     CALIBRATION_DATES,
     EVALUATION_DATE,
+    FAST_ETA_UPPER_BOUND,
+    KAPPA_GAP_UPPER_BOUND,
+    OBSERVATION_NOISE_MODEL,
     RISK_FREE_RATE,
     CalibrationResult,
     calibrate_two_factor,
@@ -26,6 +29,7 @@ from calibration import (
 from calendar_utils import EXPLICIT_CALENDAR_PATH, explicit_calendar_years, maturity_diagnostics
 from option_pricing import OptionPricingBundle, export_pricing, price_optional_component
 from profile_analysis import FixedEtaProfile, run_fixed_eta_profile
+from im_2factor_ou_carry.observation import OBSERVATION_NOISE_MODELS, ObservationNoiseModel
 
 
 DEMO_ROOT = Path(__file__).resolve().parent
@@ -203,8 +207,10 @@ def _summary(
             f"The fast-factor volatility is at the revised upper bound of {eta_cap:g}; the larger cap did not produce an interior optimum."
         )
     if calibration.metrics["kappa_fast_minus_slow_at_upper_bound"]:
+        gap_cap = float(calibration.metrics["kappa_fast_minus_slow_upper_bound"])
         warnings.append(
-            "The fast-minus-slow mean-reversion gap is at its upper bound of 60; the eta boundary is resolved, but fast mean reversion remains constrained."
+            "The fast-minus-slow mean-reversion gap is at its upper bound of "
+            f"{gap_cap:g}; fast mean reversion remains constrained."
         )
     if calibration.metrics["weak_latest_instantaneous_observability"]:
         warnings.append("The latest instantaneous state meets the established weak-observability flag.")
@@ -286,6 +292,9 @@ def run_demo(
     valuation_date: object = EVALUATION_DATE,
     sample_size: int = CALIBRATION_DATES,
     futures_contract: str = "IM2609",
+    observation_noise_model: ObservationNoiseModel = OBSERVATION_NOISE_MODEL,
+    kappa_gap_upper_bound: float = KAPPA_GAP_UPPER_BOUND,
+    eta_fast_upper_bound: float = FAST_ETA_UPPER_BOUND,
     output_dir: str | Path = OUTPUT_DIR,
 ) -> DemoResult:
     """Run calibration, price the option-only leg, and persist all demo artifacts."""
@@ -296,6 +305,9 @@ def run_demo(
         evaluation_date=valuation_date,
         window_dates=sample_size,
         contract_code=futures_contract,
+        observation_noise_model=observation_noise_model,
+        kappa_gap_upper_bound=kappa_gap_upper_bound,
+        eta_fast_upper_bound=eta_fast_upper_bound,
     )
     export_calibration(calibration, output_dir)
     pricing = price_optional_component(calibration)
@@ -342,6 +354,24 @@ if __name__ == "__main__":
         help="CFFEX index-futures contract code, for example IM2612",
     )
     parser.add_argument(
+        "--observation-noise-model",
+        choices=OBSERVATION_NOISE_MODELS,
+        default=OBSERVATION_NOISE_MODEL,
+        help="Observation equation/noise specification used by calibration",
+    )
+    parser.add_argument(
+        "--kappa-gap-upper-bound",
+        type=float,
+        default=KAPPA_GAP_UPPER_BOUND,
+        help="Upper bound for kappa_fast minus kappa_slow",
+    )
+    parser.add_argument(
+        "--eta-fast-upper-bound",
+        type=float,
+        default=FAST_ETA_UPPER_BOUND,
+        help="Upper bound for fast-factor volatility",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=OUTPUT_DIR,
@@ -352,6 +382,9 @@ if __name__ == "__main__":
         valuation_date=arguments.valuation_date,
         sample_size=arguments.sample_size,
         futures_contract=arguments.futures_contract,
+        observation_noise_model=arguments.observation_noise_model,
+        kappa_gap_upper_bound=arguments.kappa_gap_upper_bound,
+        eta_fast_upper_bound=arguments.eta_fast_upper_bound,
         output_dir=arguments.output_dir,
     )
     print(json.dumps(result.summary, indent=2, ensure_ascii=False))

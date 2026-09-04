@@ -9,6 +9,12 @@ import pandas as pd
 from scipy.optimize import minimize
 
 from .estimation import numerical_hessian
+from .observation import (
+    ObservationNoiseModel,
+    native_noise_units,
+    noise_parameter_name,
+    normalize_observation_noise_model,
+)
 from .two_factor import TwoFactorDataset, TwoFactorParams, make_dataset, two_factor_log_likelihood
 
 
@@ -22,6 +28,7 @@ class TwoFactorEstimationResult:
     standard_errors: dict[str, float]
     hessian_stable: bool
     optimizer_runs: pd.DataFrame
+    observation_noise_model: ObservationNoiseModel = "constant_carry"
 
 
 def pack(params: TwoFactorParams) -> np.ndarray:
@@ -50,27 +57,47 @@ def unpack(values: np.ndarray) -> TwoFactorParams:
     )
 
 
-def _parameter_bounds(eta_fast_upper_bound: float) -> list[tuple[float, float]]:
+def _parameter_bounds(
+    eta_fast_upper_bound: float,
+    kappa_gap_upper_bound: float = 60.0,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
+) -> list[tuple[float, float]]:
     """Optimizer bounds, with a separately configurable fast-factor volatility."""
     if not np.isfinite(eta_fast_upper_bound) or eta_fast_upper_bound <= 1e-4:
         raise ValueError("eta_fast_upper_bound must be finite and greater than 1e-4")
+    if not np.isfinite(kappa_gap_upper_bound) or kappa_gap_upper_bound <= 0.01:
+        raise ValueError("kappa_gap_upper_bound must be finite and greater than 0.01")
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
+    noise_bound = (
+        (np.log(1e-5), np.log(0.50))
+        if observation_noise_model == "constant_carry"
+        else (np.log(1e-8), np.log(0.05))
+    )
     return [
         (np.log(0.01), np.log(20.0)),  # kappa_slow
-        (np.log(0.01), np.log(60.0)),  # kappa_fast - kappa_slow
+        (np.log(0.01), np.log(kappa_gap_upper_bound)),  # kappa_fast - kappa_slow
         (-0.50, 0.50),  # theta
         (np.log(1e-4), np.log(3.0)),  # eta_slow
         (np.log(1e-4), np.log(eta_fast_upper_bound)),  # eta_fast
-        (np.log(1e-5), np.log(0.50)),  # sigma_epsilon
+        noise_bound,
     ]
 
 
-def initial_guesses(panel: pd.DataFrame, count: int, seed: int = 852) -> list[TwoFactorParams]:
+def initial_guesses(
+    panel: pd.DataFrame,
+    count: int,
+    seed: int = 852,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
+) -> list[TwoFactorParams]:
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
     carry = panel["implied_carry"].dropna().to_numpy(dtype=float)
     theta = float(np.clip(np.median(carry), -0.25, 0.25))
     daily = panel.groupby("date")["implied_carry"].mean().sort_index()
     annualized_change = float(np.clip(daily.diff().dropna().std() * np.sqrt(244), 0.05, 1.5))
     cross = panel.assign(_daily=panel.groupby("date")["implied_carry"].transform("mean"))
     sigma = float(np.clip((cross["implied_carry"] - cross["_daily"]).std(), 0.001, 0.10))
+    if observation_noise_model == "constant_log_futures":
+        sigma = float(np.clip(sigma * panel["tau"].median(), 1e-6, 0.02))
     templates = [
         (0.15, 4.0, 0.25, 0.75),
         (0.35, 8.0, 0.35, 1.00),
@@ -109,16 +136,25 @@ def estimate_two_factor_ou(
     seed: int = 852,
     compute_standard_errors: bool = True,
     eta_fast_upper_bound: float = 3.0,
+    kappa_gap_upper_bound: float = 60.0,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
 ) -> TwoFactorEstimationResult:
     """Estimate independent slow/fast OU factors with enforced ordering."""
-    dataset: TwoFactorDataset = make_dataset(panel, gap_function)
-    bounds = _parameter_bounds(eta_fast_upper_bound)
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
+    dataset: TwoFactorDataset = make_dataset(
+        panel,
+        gap_function,
+        observation_noise_model,
+    )
+    bounds = _parameter_bounds(
+        eta_fast_upper_bound,
+        kappa_gap_upper_bound,
+        observation_noise_model,
+    )
 
     def objective(values: np.ndarray) -> float:
         try:
             params = unpack(values)
-            if params.kappa_fast > 80.0:
-                return 1e100
             result = -two_factor_log_likelihood(dataset, params)
             return result if np.isfinite(result) else 1e100
         except (ValueError, FloatingPointError, OverflowError, np.linalg.LinAlgError):
@@ -126,7 +162,9 @@ def estimate_two_factor_ou(
 
     optimizer_results = []
     audit = []
-    for start_id, guess in enumerate(initial_guesses(panel, starts, seed)):
+    for start_id, guess in enumerate(
+        initial_guesses(panel, starts, seed, observation_noise_model)
+    ):
         result = minimize(
             objective,
             pack(guess),
@@ -139,6 +177,8 @@ def estimate_two_factor_ou(
         audit.append(
             {
                 "start_id": start_id,
+                "observation_noise_model": observation_noise_model,
+                "noise_parameter_name": noise_parameter_name(observation_noise_model),
                 **{f"start_{key}": value for key, value in asdict(guess).items()},
                 **{f"estimate_{key}": value for key, value in asdict(fitted).items()},
                 "log_likelihood": -float(result.fun),
@@ -180,6 +220,7 @@ def estimate_two_factor_ou(
             stable = False
     return TwoFactorEstimationResult(
         params=params,
+        observation_noise_model=observation_noise_model,
         log_likelihood=-float(best.fun),
         converged=bool(best.success),
         message=str(best.message),
@@ -192,12 +233,26 @@ def estimate_two_factor_ou(
 
 def two_factor_parameter_table(result: TwoFactorEstimationResult) -> pd.DataFrame:
     values = asdict(result.params)
+    sigma = values.pop("sigma_epsilon")
+    sigma_se = result.standard_errors["sigma_epsilon"]
+    parameter_name = noise_parameter_name(result.observation_noise_model)
+    values[parameter_name] = sigma
+    standard_errors = {
+        key: result.standard_errors[key]
+        for key in values
+        if key != parameter_name
+    }
+    standard_errors[parameter_name] = sigma_se
     table = pd.DataFrame(
         {
             "parameter": list(values),
             "estimate": list(values.values()),
-            "standard_error": [result.standard_errors[key] for key in values],
+            "standard_error": [standard_errors[key] for key in values],
         }
+    )
+    table["observation_noise_model"] = result.observation_noise_model
+    table["native_observation_units"] = native_noise_units(
+        result.observation_noise_model
     )
     table["log_likelihood"] = result.log_likelihood
     table["optimizer_converged"] = result.converged

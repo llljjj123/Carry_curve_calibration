@@ -1,0 +1,989 @@
+model,model_label,sessions_to_expiry,observation_noise_carry_bps,approximate_futures_noise_points_at_7500
+constant_carry,Constant carry noise,6,59.84790269724523,1.1037523038426373
+constant_carry,Constant carry noise,7,59.84790269724523,1.2877110211497438
+constant_carry,Constant carry noise,8,59.84790269724523,1.4716697384568502
+constant_carry,Constant carry noise,9,59.84790269724523,1.6556284557639562
+constant_carry,Constant carry noise,10,59.84790269724523,1.8395871730710625
+constant_carry,Constant carry noise,11,59.84790269724523,2.023545890378169
+constant_carry,Constant carry noise,12,59.84790269724523,2.2075046076852747
+constant_carry,Constant carry noise,13,59.84790269724523,2.391463324992381
+constant_carry,Constant carry noise,14,59.84790269724523,2.5754220422994876
+constant_carry,Constant carry noise,15,59.84790269724523,2.7593807596065933
+constant_carry,Constant carry noise,16,59.84790269724523,2.9433394769137005
+constant_carry,Constant carry noise,17,59.84790269724523,3.1272981942208062
+constant_carry,Constant carry noise,18,59.84790269724523,3.3112569115279125
+constant_carry,Constant carry noise,19,59.84790269724523,3.495215628835019
+constant_carry,Constant carry noise,20,59.84790269724523,3.679174346142125
+constant_carry,Constant carry noise,21,59.84790269724523,3.863133063449231
+constant_carry,Constant carry noise,22,59.84790269724523,4.047091780756338
+constant_carry,Constant carry noise,23,59.84790269724523,4.231050498063444
+constant_carry,Constant carry noise,24,59.84790269724523,4.415009215370549
+constant_carry,Constant carry noise,25,59.84790269724523,4.598967932677656
+constant_carry,Constant carry noise,26,59.84790269724523,4.782926649984762
+constant_carry,Constant carry noise,27,59.84790269724523,4.9668853672918685
+constant_carry,Constant carry noise,28,59.84790269724523,5.150844084598975
+constant_carry,Constant carry noise,29,59.84790269724523,5.334802801906081
+constant_carry,Constant carry noise,30,59.84790269724523,5.518761519213187
+constant_carry,Constant carry noise,31,59.84790269724523,5.702720236520294
+constant_carry,Constant carry noise,32,59.84790269724523,5.886678953827401
+constant_carry,Constant carry noise,33,59.84790269724523,6.070637671134507
+constant_carry,Constant carry noise,34,59.84790269724523,6.2545963884416125
+constant_carry,Constant carry noise,35,59.84790269724523,6.438555105748718
+constant_carry,Constant carry noise,36,59.84790269724523,6.622513823055825
+constant_carry,Constant carry noise,37,59.84790269724523,6.806472540362931
+constant_carry,Constant carry noise,38,59.84790269724523,6.990431257670038
+constant_carry,Constant carry noise,39,59.84790269724523,7.174389974977144
+constant_carry,Constant carry noise,40,59.84790269724523,7.35834869228425
+constant_carry,Constant carry noise,41,59.84790269724523,7.5423074095913565
+constant_carry,Constant carry noise,42,59.84790269724523,7.726266126898462
+constant_carry,Constant carry noise,43,59.84790269724523,7.91022484420557
+constant_carry,Constant carry noise,44,59.84790269724523,8.094183561512676
+constant_carry,Constant carry noise,45,59.84790269724523,8.278142278819782
+constant_carry,Constant carry noise,46,59.84790269724523,8.462100996126887
+constant_carry,Constant carry noise,47,59.84790269724523,8.646059713433994
+constant_carry,Constant carry noise,48,59.84790269724523,8.830018430741099
+constant_carry,Constant carry noise,49,59.84790269724523,9.013977148048207
+constant_carry,Constant carry noise,50,59.84790269724523,9.197935865355312
+constant_carry,Constant carry noise,51,59.84790269724523,9.381894582662419
+constant_carry,Constant carry noise,52,59.84790269724523,9.565853299969524
+constant_carry,Constant carry noise,53,59.84790269724523,9.74981201727663
+constant_carry,Constant carry noise,54,59.84790269724523,9.933770734583737
+constant_carry,Constant carry noise,55,59.84790269724523,10.117729451890844
+constant_carry,Constant carry noise,56,59.84790269724523,10.30168816919795
+constant_carry,Constant carry noise,57,59.84790269724523,10.485646886505057
+constant_carry,Constant carry noise,58,59.84790269724523,10.669605603812162
+constant_carry,Constant carry noise,59,59.84790269724523,10.853564321119268
+constant_carry,Constant carry noise,60,59.84790269724523,11.037523038426373
+constant_carry,Constant carry noise,61,59.84790269724523,11.221481755733482
+constant_carry,Constant carry noise,62,59.84790269724523,11.405440473040589
+constant_carry,Constant carry noise,63,59.84790269724523,11.589399190347693
+constant_carry,Constant carry noise,64,59.84790269724523,11.773357907654802
+constant_carry,Constant carry noise,65,59.84790269724523,11.957316624961907
+constant_carry,Constant carry noise,66,59.84790269724523,12.141275342269013
+constant_carry,Constant carry noise,67,59.84790269724523,12.325234059576122
+constant_carry,Constant carry noise,68,59.84790269724523,12.509192776883225
+constant_carry,Constant carry noise,69,59.84790269724523,12.69315149419033
+constant_carry,Constant carry noise,70,59.84790269724523,12.877110211497437
+constant_carry,Constant carry noise,71,59.84790269724523,13.061068928804545
+constant_carry,Constant carry noise,72,59.84790269724523,13.24502764611165
+constant_carry,Constant carry noise,73,59.84790269724523,13.428986363418757
+constant_carry,Constant carry noise,74,59.84790269724523,13.612945080725861
+constant_carry,Constant carry noise,75,59.84790269724523,13.79690379803297
+constant_carry,Constant carry noise,76,59.84790269724523,13.980862515340077
+constant_carry,Constant carry noise,77,59.84790269724523,14.164821232647181
+constant_carry,Constant carry noise,78,59.84790269724523,14.348779949954288
+constant_carry,Constant carry noise,79,59.84790269724523,14.532738667261397
+constant_carry,Constant carry noise,80,59.84790269724523,14.7166973845685
+constant_carry,Constant carry noise,81,59.84790269724523,14.900656101875605
+constant_carry,Constant carry noise,82,59.84790269724523,15.084614819182713
+constant_carry,Constant carry noise,83,59.84790269724523,15.26857353648982
+constant_carry,Constant carry noise,84,59.84790269724523,15.452532253796925
+constant_carry,Constant carry noise,85,59.84790269724523,15.636490971104031
+constant_carry,Constant carry noise,86,59.84790269724523,15.82044968841114
+constant_carry,Constant carry noise,87,59.84790269724523,16.004408405718245
+constant_carry,Constant carry noise,88,59.84790269724523,16.18836712302535
+constant_carry,Constant carry noise,89,59.84790269724523,16.372325840332458
+constant_carry,Constant carry noise,90,59.84790269724523,16.556284557639565
+constant_carry,Constant carry noise,91,59.84790269724523,16.74024327494667
+constant_carry,Constant carry noise,92,59.84790269724523,16.924201992253774
+constant_carry,Constant carry noise,93,59.84790269724523,17.108160709560877
+constant_carry,Constant carry noise,94,59.84790269724523,17.292119426867988
+constant_carry,Constant carry noise,95,59.84790269724523,17.476078144175094
+constant_carry,Constant carry noise,96,59.84790269724523,17.660036861482197
+constant_carry,Constant carry noise,97,59.84790269724523,17.843995578789304
+constant_carry,Constant carry noise,98,59.84790269724523,18.027954296096414
+constant_carry,Constant carry noise,99,59.84790269724523,18.211913013403517
+constant_carry,Constant carry noise,100,59.84790269724523,18.395871730710624
+constant_carry,Constant carry noise,101,59.84790269724523,18.57983044801773
+constant_carry,Constant carry noise,102,59.84790269724523,18.763789165324837
+constant_carry,Constant carry noise,103,59.84790269724523,18.947747882631944
+constant_carry,Constant carry noise,104,59.84790269724523,19.131706599939047
+constant_carry,Constant carry noise,105,59.84790269724523,19.315665317246157
+constant_carry,Constant carry noise,106,59.84790269724523,19.49962403455326
+constant_carry,Constant carry noise,107,59.84790269724523,19.683582751860367
+constant_carry,Constant carry noise,108,59.84790269724523,19.867541469167474
+constant_carry,Constant carry noise,109,59.84790269724523,20.05150018647458
+constant_carry,Constant carry noise,110,59.84790269724523,20.235458903781687
+constant_carry,Constant carry noise,111,59.84790269724523,20.419417621088794
+constant_carry,Constant carry noise,112,59.84790269724523,20.6033763383959
+constant_carry,Constant carry noise,113,59.84790269724523,20.787335055703007
+constant_carry,Constant carry noise,114,59.84790269724523,20.971293773010114
+constant_carry,Constant carry noise,115,59.84790269724523,21.15525249031722
+constant_carry,Constant carry noise,116,59.84790269724523,21.339211207624324
+constant_carry,Constant carry noise,117,59.84790269724523,21.52316992493143
+constant_carry,Constant carry noise,118,59.84790269724523,21.707128642238537
+constant_carry,Constant carry noise,119,59.84790269724523,21.891087359545644
+constant_carry,Constant carry noise,120,59.84790269724523,22.075046076852747
+constant_carry,Constant carry noise,121,59.84790269724523,22.259004794159857
+constant_carry,Constant carry noise,122,59.84790269724523,22.442963511466964
+constant_carry,Constant carry noise,123,59.84790269724523,22.626922228774067
+constant_carry,Constant carry noise,124,59.84790269724523,22.810880946081177
+constant_carry,Constant carry noise,125,59.84790269724523,22.99483966338828
+constant_carry,Constant carry noise,126,59.84790269724523,23.178798380695387
+constant_carry,Constant carry noise,127,59.84790269724523,23.36275709800249
+constant_carry,Constant carry noise,128,59.84790269724523,23.546715815309604
+constant_carry,Constant carry noise,129,59.84790269724523,23.730674532616707
+constant_carry,Constant carry noise,130,59.84790269724523,23.914633249923813
+constant_carry,Constant carry noise,131,59.84790269724523,24.098591967230917
+constant_carry,Constant carry noise,132,59.84790269724523,24.282550684538027
+constant_carry,Constant carry noise,133,59.84790269724523,24.46650940184513
+constant_carry,Constant carry noise,134,59.84790269724523,24.650468119152244
+constant_carry,Constant carry noise,135,59.84790269724523,24.834426836459347
+constant_carry,Constant carry noise,136,59.84790269724523,25.01838555376645
+constant_carry,Constant carry noise,137,59.84790269724523,25.202344271073557
+constant_carry,Constant carry noise,138,59.84790269724523,25.38630298838066
+constant_carry,Constant carry noise,139,59.84790269724523,25.57026170568777
+constant_carry,Constant carry noise,140,59.84790269724523,25.754220422994873
+constant_carry,Constant carry noise,141,59.84790269724523,25.93817914030198
+constant_carry,Constant carry noise,142,59.84790269724523,26.12213785760909
+constant_carry,Constant carry noise,143,59.84790269724523,26.306096574916197
+constant_carry,Constant carry noise,144,59.84790269724523,26.4900552922233
+constant_carry,Constant carry noise,145,59.84790269724523,26.67401400953041
+constant_carry,Constant carry noise,146,59.84790269724523,26.857972726837513
+constant_carry,Constant carry noise,147,59.84790269724523,27.041931444144616
+constant_carry,Constant carry noise,148,59.84790269724523,27.225890161451723
+constant_carry,Constant carry noise,149,59.84790269724523,27.409848878758833
+constant_carry,Constant carry noise,150,59.84790269724523,27.59380759606594
+constant_carry,Constant carry noise,151,59.84790269724523,27.777766313373043
+constant_carry,Constant carry noise,152,59.84790269724523,27.961725030680153
+constant_carry,Constant carry noise,153,59.84790269724523,28.145683747987256
+constant_carry,Constant carry noise,154,59.84790269724523,28.329642465294363
+constant_carry,Constant carry noise,155,59.84790269724523,28.513601182601466
+constant_carry,Constant carry noise,156,59.84790269724523,28.697559899908576
+constant_carry,Constant carry noise,157,59.84790269724523,28.881518617215683
+constant_carry,Constant carry noise,158,59.84790269724523,29.065477334522793
+constant_carry,Constant carry noise,159,59.84790269724523,29.249436051829896
+constant_carry,Constant carry noise,160,59.84790269724523,29.433394769137
+constant_carry,Constant carry noise,161,59.84790269724523,29.617353486444106
+constant_carry,Constant carry noise,162,59.84790269724523,29.80131220375121
+constant_carry,Constant carry noise,163,59.84790269724523,29.98527092105832
+constant_carry,Constant carry noise,164,59.84790269724523,30.169229638365426
+constant_carry,Constant carry noise,165,59.84790269724523,30.353188355672536
+constant_carry,Constant carry noise,166,59.84790269724523,30.53714707297964
+constant_carry,Constant carry noise,167,59.84790269724523,30.721105790286746
+constant_carry,Constant carry noise,168,59.84790269724523,30.90506450759385
+constant_carry,Constant carry noise,169,59.84790269724523,31.08902322490096
+constant_carry,Constant carry noise,170,59.84790269724523,31.272981942208062
+constant_carry,Constant carry noise,171,59.84790269724523,31.456940659515165
+constant_carry,Constant carry noise,172,59.84790269724523,31.64089937682228
+constant_carry,Constant carry noise,173,59.84790269724523,31.824858094129382
+constant_carry,Constant carry noise,174,59.84790269724523,32.00881681143649
+constant_carry,Constant carry noise,175,59.84790269724523,32.192775528743596
+constant_carry,Constant carry noise,176,59.84790269724523,32.3767342460507
+constant_carry,Constant carry noise,177,59.84790269724523,32.5606929633578
+constant_carry,Constant carry noise,178,59.84790269724523,32.744651680664916
+constant_carry,Constant carry noise,179,59.84790269724523,32.928610397972015
+constant_carry,Constant carry noise,180,59.84790269724523,33.11256911527913
+constant_carry,Constant carry noise,181,59.84790269724523,33.296527832586236
+constant_carry,Constant carry noise,182,59.84790269724523,33.48048654989334
+constant_carry,Constant carry noise,183,59.84790269724523,33.66444526720044
+constant_carry,Constant carry noise,184,59.84790269724523,33.84840398450755
+constant_carry,Constant carry noise,185,59.84790269724523,34.032362701814655
+constant_carry,Constant carry noise,186,59.84790269724523,34.216321419121755
+constant_carry,Constant carry noise,187,59.84790269724523,34.400280136428876
+constant_carry,Constant carry noise,188,59.84790269724523,34.584238853735975
+constant_carry,Constant carry noise,189,59.84790269724523,34.76819757104308
+constant_carry,Constant carry noise,190,59.84790269724523,34.95215628835019
+constant_carry,Constant carry noise,191,59.84790269724523,35.136115005657295
+constant_carry,Constant carry noise,192,59.84790269724523,35.320073722964395
+constant_carry,Constant carry noise,193,59.84790269724523,35.50403244027151
+constant_carry,Constant carry noise,194,59.84790269724523,35.68799115757861
+constant_carry,Constant carry noise,195,59.84790269724523,35.87194987488572
+constant_carry,Constant carry noise,196,59.84790269724523,36.05590859219283
+constant_carry,Constant carry noise,197,59.84790269724523,36.23986730949993
+constant_carry,Constant carry noise,198,59.84790269724523,36.423826026807035
+constant_carry,Constant carry noise,199,59.84790269724523,36.60778474411414
+constant_carry,Constant carry noise,200,59.84790269724523,36.79174346142125
+constant_carry,Constant carry noise,201,59.84790269724523,36.975702178728355
+constant_carry,Constant carry noise,202,59.84790269724523,37.15966089603546
+constant_carry,Constant carry noise,203,59.84790269724523,37.34361961334257
+constant_carry,Constant carry noise,204,59.84790269724523,37.527578330649675
+constant_carry,Constant carry noise,205,59.84790269724523,37.71153704795678
+constant_carry,Constant carry noise,206,59.84790269724523,37.89549576526389
+constant_carry,Constant carry noise,207,59.84790269724523,38.079454482570995
+constant_carry,Constant carry noise,208,59.84790269724523,38.263413199878094
+constant_carry,Constant carry noise,209,59.84790269724523,38.4473719171852
+constant_carry,Constant carry noise,210,59.84790269724523,38.631330634492315
+constant_carry,Constant carry noise,211,59.84790269724523,38.81528935179942
+constant_carry,Constant carry noise,212,59.84790269724523,38.99924806910652
+constant_carry,Constant carry noise,213,59.84790269724523,39.183206786413635
+constant_carry,Constant carry noise,214,59.84790269724523,39.367165503720734
+constant_carry,Constant carry noise,215,59.84790269724523,39.55112422102784
+constant_carry,Constant carry noise,216,59.84790269724523,39.73508293833495
+constant_carry,Constant carry noise,217,59.84790269724523,39.919041655642054
+constant_carry,Constant carry noise,218,59.84790269724523,40.10300037294916
+constant_carry,Constant carry noise,219,59.84790269724523,40.286959090256275
+constant_carry,Constant carry noise,220,59.84790269724523,40.470917807563374
+constant_carry,Constant carry noise,221,59.84790269724523,40.65487652487048
+constant_carry,Constant carry noise,222,59.84790269724523,40.83883524217759
+constant_carry,Constant carry noise,223,59.84790269724523,41.02279395948469
+constant_carry,Constant carry noise,224,59.84790269724523,41.2067526767918
+constant_carry,Constant carry noise,225,59.84790269724523,41.39071139409891
+constant_carry,Constant carry noise,226,59.84790269724523,41.574670111406014
+constant_carry,Constant carry noise,227,59.84790269724523,41.75862882871312
+constant_carry,Constant carry noise,228,59.84790269724523,41.94258754602023
+constant_carry,Constant carry noise,229,59.84790269724523,42.12654626332733
+constant_carry,Constant carry noise,230,59.84790269724523,42.31050498063444
+constant_carry,Constant carry noise,231,59.84790269724523,42.49446369794154
+constant_carry,Constant carry noise,232,59.84790269724523,42.67842241524865
+constant_carry,Constant carry noise,233,59.84790269724523,42.86238113255576
+constant_carry,Constant carry noise,234,59.84790269724523,43.04633984986286
+constant_carry,Constant carry noise,235,59.84790269724523,43.23029856716997
+constant_carry,Constant carry noise,236,59.84790269724523,43.414257284477074
+constant_carry,Constant carry noise,237,59.84790269724523,43.59821600178418
+constant_carry,Constant carry noise,238,59.84790269724523,43.78217471909129
+constant_carry,Constant carry noise,239,59.84790269724523,43.966133436398394
+constant_carry,Constant carry noise,240,59.84790269724523,44.150092153705494
+constant_carry,Constant carry noise,241,59.84790269724523,44.33405087101261
+constant_carry,Constant carry noise,242,59.84790269724523,44.518009588319714
+constant_carry,Constant carry noise,243,59.84790269724523,44.70196830562682
+constant_carry,Constant carry noise,244,59.84790269724523,44.88592702293393
+constant_carry,Constant carry noise,245,59.84790269724523,45.06988574024103
+constant_carry,Constant carry noise,246,59.84790269724523,45.253844457548134
+constant_carry,Constant carry noise,247,59.84790269724523,45.43780317485525
+constant_carry,Constant carry noise,248,59.84790269724523,45.621761892162354
+constant_carry,Constant carry noise,249,59.84790269724523,45.805720609469454
+constant_carry,Constant carry noise,250,59.84790269724523,45.98967932677656
+constant_carry,Constant carry noise,251,59.84790269724523,46.173638044083674
+constant_carry,Constant carry noise,252,59.84790269724523,46.357596761390774
+two_bucket_carry,Two carry-noise buckets,6,353.50623021957335,6.519582114705246
+two_bucket_carry,Two carry-noise buckets,7,353.50623021957335,7.6061791338227875
+two_bucket_carry,Two carry-noise buckets,8,353.50623021957335,8.69277615294033
+two_bucket_carry,Two carry-noise buckets,9,353.50623021957335,9.77937317205787
+two_bucket_carry,Two carry-noise buckets,10,353.50623021957335,10.86597019117541
+two_bucket_carry,Two carry-noise buckets,11,353.50623021957335,11.952567210292953
+two_bucket_carry,Two carry-noise buckets,12,353.50623021957335,13.039164229410492
+two_bucket_carry,Two carry-noise buckets,13,353.50623021957335,14.125761248528033
+two_bucket_carry,Two carry-noise buckets,14,353.50623021957335,15.212358267645575
+two_bucket_carry,Two carry-noise buckets,15,353.50623021957335,16.298955286763114
+two_bucket_carry,Two carry-noise buckets,16,39.86224411409713,1.960438235119531
+two_bucket_carry,Two carry-noise buckets,17,39.86224411409713,2.082965624814501
+two_bucket_carry,Two carry-noise buckets,18,39.86224411409713,2.2054930145094724
+two_bucket_carry,Two carry-noise buckets,19,39.86224411409713,2.3280204042044432
+two_bucket_carry,Two carry-noise buckets,20,39.86224411409713,2.4505477938994136
+two_bucket_carry,Two carry-noise buckets,21,39.86224411409713,2.5730751835943844
+two_bucket_carry,Two carry-noise buckets,22,39.86224411409713,2.695602573289355
+two_bucket_carry,Two carry-noise buckets,23,39.86224411409713,2.8181299629843255
+two_bucket_carry,Two carry-noise buckets,24,39.86224411409713,2.9406573526792963
+two_bucket_carry,Two carry-noise buckets,25,39.86224411409713,3.063184742374267
+two_bucket_carry,Two carry-noise buckets,26,39.86224411409713,3.1857121320692374
+two_bucket_carry,Two carry-noise buckets,27,39.86224411409713,3.308239521764208
+two_bucket_carry,Two carry-noise buckets,28,39.86224411409713,3.430766911459179
+two_bucket_carry,Two carry-noise buckets,29,39.86224411409713,3.5532943011541493
+two_bucket_carry,Two carry-noise buckets,30,39.86224411409713,3.67582169084912
+two_bucket_carry,Two carry-noise buckets,31,39.86224411409713,3.7983490805440914
+two_bucket_carry,Two carry-noise buckets,32,39.86224411409713,3.920876470239062
+two_bucket_carry,Two carry-noise buckets,33,39.86224411409713,4.043403859934033
+two_bucket_carry,Two carry-noise buckets,34,39.86224411409713,4.165931249629002
+two_bucket_carry,Two carry-noise buckets,35,39.86224411409713,4.288458639323973
+two_bucket_carry,Two carry-noise buckets,36,39.86224411409713,4.410986029018945
+two_bucket_carry,Two carry-noise buckets,37,39.86224411409713,4.533513418713915
+two_bucket_carry,Two carry-noise buckets,38,39.86224411409713,4.6560408084088865
+two_bucket_carry,Two carry-noise buckets,39,39.86224411409713,4.778568198103857
+two_bucket_carry,Two carry-noise buckets,40,39.86224411409713,4.901095587798827
+two_bucket_carry,Two carry-noise buckets,41,39.86224411409713,5.023622977493798
+two_bucket_carry,Two carry-noise buckets,42,39.86224411409713,5.146150367188769
+two_bucket_carry,Two carry-noise buckets,43,39.86224411409713,5.26867775688374
+two_bucket_carry,Two carry-noise buckets,44,39.86224411409713,5.39120514657871
+two_bucket_carry,Two carry-noise buckets,45,39.86224411409713,5.5137325362736815
+two_bucket_carry,Two carry-noise buckets,46,39.86224411409713,5.636259925968651
+two_bucket_carry,Two carry-noise buckets,47,39.86224411409713,5.758787315663622
+two_bucket_carry,Two carry-noise buckets,48,39.86224411409713,5.881314705358593
+two_bucket_carry,Two carry-noise buckets,49,39.86224411409713,6.003842095053564
+two_bucket_carry,Two carry-noise buckets,50,39.86224411409713,6.126369484748534
+two_bucket_carry,Two carry-noise buckets,51,39.86224411409713,6.248896874443505
+two_bucket_carry,Two carry-noise buckets,52,39.86224411409713,6.371424264138475
+two_bucket_carry,Two carry-noise buckets,53,39.86224411409713,6.493951653833446
+two_bucket_carry,Two carry-noise buckets,54,39.86224411409713,6.616479043528416
+two_bucket_carry,Two carry-noise buckets,55,39.86224411409713,6.739006433223388
+two_bucket_carry,Two carry-noise buckets,56,39.86224411409713,6.861533822918358
+two_bucket_carry,Two carry-noise buckets,57,39.86224411409713,6.984061212613329
+two_bucket_carry,Two carry-noise buckets,58,39.86224411409713,7.106588602308299
+two_bucket_carry,Two carry-noise buckets,59,39.86224411409713,7.22911599200327
+two_bucket_carry,Two carry-noise buckets,60,39.86224411409713,7.35164338169824
+two_bucket_carry,Two carry-noise buckets,61,39.86224411409713,7.4741707713932115
+two_bucket_carry,Two carry-noise buckets,62,39.86224411409713,7.596698161088183
+two_bucket_carry,Two carry-noise buckets,63,39.86224411409713,7.719225550783153
+two_bucket_carry,Two carry-noise buckets,64,39.86224411409713,7.841752940478124
+two_bucket_carry,Two carry-noise buckets,65,39.86224411409713,7.964280330173095
+two_bucket_carry,Two carry-noise buckets,66,39.86224411409713,8.086807719868066
+two_bucket_carry,Two carry-noise buckets,67,39.86224411409713,8.209335109563037
+two_bucket_carry,Two carry-noise buckets,68,39.86224411409713,8.331862499258005
+two_bucket_carry,Two carry-noise buckets,69,39.86224411409713,8.454389888952976
+two_bucket_carry,Two carry-noise buckets,70,39.86224411409713,8.576917278647946
+two_bucket_carry,Two carry-noise buckets,71,39.86224411409713,8.699444668342919
+two_bucket_carry,Two carry-noise buckets,72,39.86224411409713,8.82197205803789
+two_bucket_carry,Two carry-noise buckets,73,39.86224411409713,8.94449944773286
+two_bucket_carry,Two carry-noise buckets,74,39.86224411409713,9.06702683742783
+two_bucket_carry,Two carry-noise buckets,75,39.86224411409713,9.189554227122802
+two_bucket_carry,Two carry-noise buckets,76,39.86224411409713,9.312081616817773
+two_bucket_carry,Two carry-noise buckets,77,39.86224411409713,9.434609006512742
+two_bucket_carry,Two carry-noise buckets,78,39.86224411409713,9.557136396207714
+two_bucket_carry,Two carry-noise buckets,79,39.86224411409713,9.679663785902685
+two_bucket_carry,Two carry-noise buckets,80,39.86224411409713,9.802191175597654
+two_bucket_carry,Two carry-noise buckets,81,39.86224411409713,9.924718565292624
+two_bucket_carry,Two carry-noise buckets,82,39.86224411409713,10.047245954987597
+two_bucket_carry,Two carry-noise buckets,83,39.86224411409713,10.169773344682566
+two_bucket_carry,Two carry-noise buckets,84,39.86224411409713,10.292300734377537
+two_bucket_carry,Two carry-noise buckets,85,39.86224411409713,10.414828124072507
+two_bucket_carry,Two carry-noise buckets,86,39.86224411409713,10.53735551376748
+two_bucket_carry,Two carry-noise buckets,87,39.86224411409713,10.65988290346245
+two_bucket_carry,Two carry-noise buckets,88,39.86224411409713,10.78241029315742
+two_bucket_carry,Two carry-noise buckets,89,39.86224411409713,10.90493768285239
+two_bucket_carry,Two carry-noise buckets,90,39.86224411409713,11.027465072547363
+two_bucket_carry,Two carry-noise buckets,91,39.86224411409713,11.149992462242333
+two_bucket_carry,Two carry-noise buckets,92,39.86224411409713,11.272519851937302
+two_bucket_carry,Two carry-noise buckets,93,39.86224411409713,11.395047241632271
+two_bucket_carry,Two carry-noise buckets,94,39.86224411409713,11.517574631327244
+two_bucket_carry,Two carry-noise buckets,95,39.86224411409713,11.640102021022214
+two_bucket_carry,Two carry-noise buckets,96,39.86224411409713,11.762629410717185
+two_bucket_carry,Two carry-noise buckets,97,39.86224411409713,11.885156800412155
+two_bucket_carry,Two carry-noise buckets,98,39.86224411409713,12.007684190107128
+two_bucket_carry,Two carry-noise buckets,99,39.86224411409713,12.130211579802097
+two_bucket_carry,Two carry-noise buckets,100,39.86224411409713,12.252738969497068
+two_bucket_carry,Two carry-noise buckets,101,39.86224411409713,12.375266359192038
+two_bucket_carry,Two carry-noise buckets,102,39.86224411409713,12.49779374888701
+two_bucket_carry,Two carry-noise buckets,103,39.86224411409713,12.62032113858198
+two_bucket_carry,Two carry-noise buckets,104,39.86224411409713,12.74284852827695
+two_bucket_carry,Two carry-noise buckets,105,39.86224411409713,12.865375917971921
+two_bucket_carry,Two carry-noise buckets,106,39.86224411409713,12.987903307666892
+two_bucket_carry,Two carry-noise buckets,107,39.86224411409713,13.110430697361862
+two_bucket_carry,Two carry-noise buckets,108,39.86224411409713,13.232958087056833
+two_bucket_carry,Two carry-noise buckets,109,39.86224411409713,13.355485476751804
+two_bucket_carry,Two carry-noise buckets,110,39.86224411409713,13.478012866446775
+two_bucket_carry,Two carry-noise buckets,111,39.86224411409713,13.600540256141745
+two_bucket_carry,Two carry-noise buckets,112,39.86224411409713,13.723067645836716
+two_bucket_carry,Two carry-noise buckets,113,39.86224411409713,13.845595035531687
+two_bucket_carry,Two carry-noise buckets,114,39.86224411409713,13.968122425226658
+two_bucket_carry,Two carry-noise buckets,115,39.86224411409713,14.090649814921628
+two_bucket_carry,Two carry-noise buckets,116,39.86224411409713,14.213177204616597
+two_bucket_carry,Two carry-noise buckets,117,39.86224411409713,14.335704594311569
+two_bucket_carry,Two carry-noise buckets,118,39.86224411409713,14.45823198400654
+two_bucket_carry,Two carry-noise buckets,119,39.86224411409713,14.58075937370151
+two_bucket_carry,Two carry-noise buckets,120,39.86224411409713,14.70328676339648
+two_bucket_carry,Two carry-noise buckets,121,39.86224411409713,14.825814153091452
+two_bucket_carry,Two carry-noise buckets,122,39.86224411409713,14.948341542786423
+two_bucket_carry,Two carry-noise buckets,123,39.86224411409713,15.07086893248139
+two_bucket_carry,Two carry-noise buckets,124,39.86224411409713,15.193396322176365
+two_bucket_carry,Two carry-noise buckets,125,39.86224411409713,15.315923711871333
+two_bucket_carry,Two carry-noise buckets,126,39.86224411409713,15.438451101566306
+two_bucket_carry,Two carry-noise buckets,127,39.86224411409713,15.560978491261274
+two_bucket_carry,Two carry-noise buckets,128,39.86224411409713,15.683505880956249
+two_bucket_carry,Two carry-noise buckets,129,39.86224411409713,15.806033270651216
+two_bucket_carry,Two carry-noise buckets,130,39.86224411409713,15.92856066034619
+two_bucket_carry,Two carry-noise buckets,131,39.86224411409713,16.05108805004116
+two_bucket_carry,Two carry-noise buckets,132,39.86224411409713,16.173615439736132
+two_bucket_carry,Two carry-noise buckets,133,39.86224411409713,16.2961428294311
+two_bucket_carry,Two carry-noise buckets,134,39.86224411409713,16.418670219126074
+two_bucket_carry,Two carry-noise buckets,135,39.86224411409713,16.541197608821044
+two_bucket_carry,Two carry-noise buckets,136,39.86224411409713,16.66372499851601
+two_bucket_carry,Two carry-noise buckets,137,39.86224411409713,16.786252388210983
+two_bucket_carry,Two carry-noise buckets,138,39.86224411409713,16.908779777905952
+two_bucket_carry,Two carry-noise buckets,139,39.86224411409713,17.031307167600925
+two_bucket_carry,Two carry-noise buckets,140,39.86224411409713,17.15383455729589
+two_bucket_carry,Two carry-noise buckets,141,39.86224411409713,17.276361946990864
+two_bucket_carry,Two carry-noise buckets,142,39.86224411409713,17.398889336685837
+two_bucket_carry,Two carry-noise buckets,143,39.86224411409713,17.52141672638081
+two_bucket_carry,Two carry-noise buckets,144,39.86224411409713,17.64394411607578
+two_bucket_carry,Two carry-noise buckets,145,39.86224411409713,17.76647150577075
+two_bucket_carry,Two carry-noise buckets,146,39.86224411409713,17.88899889546572
+two_bucket_carry,Two carry-noise buckets,147,39.86224411409713,18.011526285160688
+two_bucket_carry,Two carry-noise buckets,148,39.86224411409713,18.13405367485566
+two_bucket_carry,Two carry-noise buckets,149,39.86224411409713,18.25658106455063
+two_bucket_carry,Two carry-noise buckets,150,39.86224411409713,18.379108454245603
+two_bucket_carry,Two carry-noise buckets,151,39.86224411409713,18.501635843940573
+two_bucket_carry,Two carry-noise buckets,152,39.86224411409713,18.624163233635546
+two_bucket_carry,Two carry-noise buckets,153,39.86224411409713,18.74669062333051
+two_bucket_carry,Two carry-noise buckets,154,39.86224411409713,18.869218013025485
+two_bucket_carry,Two carry-noise buckets,155,39.86224411409713,18.991745402720454
+two_bucket_carry,Two carry-noise buckets,156,39.86224411409713,19.114272792415427
+two_bucket_carry,Two carry-noise buckets,157,39.86224411409713,19.236800182110397
+two_bucket_carry,Two carry-noise buckets,158,39.86224411409713,19.35932757180537
+two_bucket_carry,Two carry-noise buckets,159,39.86224411409713,19.48185496150034
+two_bucket_carry,Two carry-noise buckets,160,39.86224411409713,19.60438235119531
+two_bucket_carry,Two carry-noise buckets,161,39.86224411409713,19.726909740890278
+two_bucket_carry,Two carry-noise buckets,162,39.86224411409713,19.849437130585248
+two_bucket_carry,Two carry-noise buckets,163,39.86224411409713,19.97196452028022
+two_bucket_carry,Two carry-noise buckets,164,39.86224411409713,20.094491909975194
+two_bucket_carry,Two carry-noise buckets,165,39.86224411409713,20.217019299670163
+two_bucket_carry,Two carry-noise buckets,166,39.86224411409713,20.339546689365132
+two_bucket_carry,Two carry-noise buckets,167,39.86224411409713,20.462074079060105
+two_bucket_carry,Two carry-noise buckets,168,39.86224411409713,20.584601468755075
+two_bucket_carry,Two carry-noise buckets,169,39.86224411409713,20.707128858450044
+two_bucket_carry,Two carry-noise buckets,170,39.86224411409713,20.829656248145014
+two_bucket_carry,Two carry-noise buckets,171,39.86224411409713,20.952183637839983
+two_bucket_carry,Two carry-noise buckets,172,39.86224411409713,21.07471102753496
+two_bucket_carry,Two carry-noise buckets,173,39.86224411409713,21.197238417229926
+two_bucket_carry,Two carry-noise buckets,174,39.86224411409713,21.3197658069249
+two_bucket_carry,Two carry-noise buckets,175,39.86224411409713,21.442293196619868
+two_bucket_carry,Two carry-noise buckets,176,39.86224411409713,21.56482058631484
+two_bucket_carry,Two carry-noise buckets,177,39.86224411409713,21.687347976009807
+two_bucket_carry,Two carry-noise buckets,178,39.86224411409713,21.80987536570478
+two_bucket_carry,Two carry-noise buckets,179,39.86224411409713,21.93240275539975
+two_bucket_carry,Two carry-noise buckets,180,39.86224411409713,22.054930145094726
+two_bucket_carry,Two carry-noise buckets,181,39.86224411409713,22.177457534789692
+two_bucket_carry,Two carry-noise buckets,182,39.86224411409713,22.299984924484665
+two_bucket_carry,Two carry-noise buckets,183,39.86224411409713,22.422512314179635
+two_bucket_carry,Two carry-noise buckets,184,39.86224411409713,22.545039703874604
+two_bucket_carry,Two carry-noise buckets,185,39.86224411409713,22.667567093569573
+two_bucket_carry,Two carry-noise buckets,186,39.86224411409713,22.790094483264543
+two_bucket_carry,Two carry-noise buckets,187,39.86224411409713,22.91262187295952
+two_bucket_carry,Two carry-noise buckets,188,39.86224411409713,23.03514926265449
+two_bucket_carry,Two carry-noise buckets,189,39.86224411409713,23.15767665234946
+two_bucket_carry,Two carry-noise buckets,190,39.86224411409713,23.280204042044428
+two_bucket_carry,Two carry-noise buckets,191,39.86224411409713,23.4027314317394
+two_bucket_carry,Two carry-noise buckets,192,39.86224411409713,23.52525882143437
+two_bucket_carry,Two carry-noise buckets,193,39.86224411409713,23.64778621112934
+two_bucket_carry,Two carry-noise buckets,194,39.86224411409713,23.77031360082431
+two_bucket_carry,Two carry-noise buckets,195,39.86224411409713,23.892840990519286
+two_bucket_carry,Two carry-noise buckets,196,39.86224411409713,24.015368380214255
+two_bucket_carry,Two carry-noise buckets,197,39.86224411409713,24.13789576990922
+two_bucket_carry,Two carry-noise buckets,198,39.86224411409713,24.260423159604194
+two_bucket_carry,Two carry-noise buckets,199,39.86224411409713,24.382950549299164
+two_bucket_carry,Two carry-noise buckets,200,39.86224411409713,24.505477938994137
+two_bucket_carry,Two carry-noise buckets,201,39.86224411409713,24.628005328689103
+two_bucket_carry,Two carry-noise buckets,202,39.86224411409713,24.750532718384076
+two_bucket_carry,Two carry-noise buckets,203,39.86224411409713,24.87306010807905
+two_bucket_carry,Two carry-noise buckets,204,39.86224411409713,24.99558749777402
+two_bucket_carry,Two carry-noise buckets,205,39.86224411409713,25.118114887468987
+two_bucket_carry,Two carry-noise buckets,206,39.86224411409713,25.24064227716396
+two_bucket_carry,Two carry-noise buckets,207,39.86224411409713,25.36316966685893
+two_bucket_carry,Two carry-noise buckets,208,39.86224411409713,25.4856970565539
+two_bucket_carry,Two carry-noise buckets,209,39.86224411409713,25.60822444624887
+two_bucket_carry,Two carry-noise buckets,210,39.86224411409713,25.730751835943842
+two_bucket_carry,Two carry-noise buckets,211,39.86224411409713,25.853279225638815
+two_bucket_carry,Two carry-noise buckets,212,39.86224411409713,25.975806615333784
+two_bucket_carry,Two carry-noise buckets,213,39.86224411409713,26.098334005028757
+two_bucket_carry,Two carry-noise buckets,214,39.86224411409713,26.220861394723723
+two_bucket_carry,Two carry-noise buckets,215,39.86224411409713,26.343388784418696
+two_bucket_carry,Two carry-noise buckets,216,39.86224411409713,26.465916174113666
+two_bucket_carry,Two carry-noise buckets,217,39.86224411409713,26.58844356380864
+two_bucket_carry,Two carry-noise buckets,218,39.86224411409713,26.710970953503608
+two_bucket_carry,Two carry-noise buckets,219,39.86224411409713,26.83349834319858
+two_bucket_carry,Two carry-noise buckets,220,39.86224411409713,26.95602573289355
+two_bucket_carry,Two carry-noise buckets,221,39.86224411409713,27.07855312258852
+two_bucket_carry,Two carry-noise buckets,222,39.86224411409713,27.20108051228349
+two_bucket_carry,Two carry-noise buckets,223,39.86224411409713,27.32360790197846
+two_bucket_carry,Two carry-noise buckets,224,39.86224411409713,27.446135291673432
+two_bucket_carry,Two carry-noise buckets,225,39.86224411409713,27.568662681368405
+two_bucket_carry,Two carry-noise buckets,226,39.86224411409713,27.691190071063374
+two_bucket_carry,Two carry-noise buckets,227,39.86224411409713,27.813717460758344
+two_bucket_carry,Two carry-noise buckets,228,39.86224411409713,27.936244850453317
+two_bucket_carry,Two carry-noise buckets,229,39.86224411409713,28.058772240148286
+two_bucket_carry,Two carry-noise buckets,230,39.86224411409713,28.181299629843256
+two_bucket_carry,Two carry-noise buckets,231,39.86224411409713,28.303827019538225
+two_bucket_carry,Two carry-noise buckets,232,39.86224411409713,28.426354409233195
+two_bucket_carry,Two carry-noise buckets,233,39.86224411409713,28.54888179892817
+two_bucket_carry,Two carry-noise buckets,234,39.86224411409713,28.671409188623137
+two_bucket_carry,Two carry-noise buckets,235,39.86224411409713,28.79393657831811
+two_bucket_carry,Two carry-noise buckets,236,39.86224411409713,28.91646396801308
+two_bucket_carry,Two carry-noise buckets,237,39.86224411409713,29.038991357708053
+two_bucket_carry,Two carry-noise buckets,238,39.86224411409713,29.16151874740302
+two_bucket_carry,Two carry-noise buckets,239,39.86224411409713,29.28404613709799
+two_bucket_carry,Two carry-noise buckets,240,39.86224411409713,29.40657352679296
+two_bucket_carry,Two carry-noise buckets,241,39.86224411409713,29.529100916487938
+two_bucket_carry,Two carry-noise buckets,242,39.86224411409713,29.651628306182904
+two_bucket_carry,Two carry-noise buckets,243,39.86224411409713,29.774155695877877
+two_bucket_carry,Two carry-noise buckets,244,39.86224411409713,29.896683085572846
+two_bucket_carry,Two carry-noise buckets,245,39.86224411409713,30.019210475267815
+two_bucket_carry,Two carry-noise buckets,246,39.86224411409713,30.14173786496278
+two_bucket_carry,Two carry-noise buckets,247,39.86224411409713,30.264265254657758
+two_bucket_carry,Two carry-noise buckets,248,39.86224411409713,30.38679264435273
+two_bucket_carry,Two carry-noise buckets,249,39.86224411409713,30.5093200340477
+two_bucket_carry,Two carry-noise buckets,250,39.86224411409713,30.631847423742666
+two_bucket_carry,Two carry-noise buckets,251,39.86224411409713,30.754374813437643
+two_bucket_carry,Two carry-noise buckets,252,39.86224411409713,30.876902203132612
+smooth_carry_log,Smooth carry + log-price noise,6,395.1121714649306,7.286904801607327
+smooth_carry_log,Smooth carry + log-price noise,7,338.6675755702094,7.286904802227866
+smooth_carry_log,Smooth carry + log-price noise,8,296.33412865305087,7.286904802943875
+smooth_carry_log,Smooth carry + log-price noise,9,263.40811438760073,7.286904803755347
+smooth_carry_log,Smooth carry + log-price noise,10,237.0673029783465,7.2869048046622895
+smooth_carry_log,Smooth carry + log-price noise,11,215.515730009962,7.286904805664699
+smooth_carry_log,Smooth carry + log-price noise,12,197.55608587222983,7.286904806762576
+smooth_carry_log,Smooth carry + log-price noise,13,182.35946391192252,7.28690480795592
+smooth_carry_log,Smooth carry + log-price noise,14,169.33378794816332,7.286904809244733
+smooth_carry_log,Smooth carry + log-price noise,15,158.0448687816426,7.286904810629013
+smooth_carry_log,Smooth carry + log-price noise,16,148.16706451287814,7.286904812108761
+smooth_carry_log,Smooth carry + log-price noise,17,139.4513548657953,7.286904813683976
+smooth_carry_log,Smooth carry + log-price noise,18,131.70405740344717,7.286904815354658
+smooth_carry_log,Smooth carry + log-price noise,19,124.77226493877033,7.286904817120809
+smooth_carry_log,Smooth carry + log-price noise,20,118.53365172211414,7.286904818982427
+smooth_carry_log,Smooth carry + log-price noise,21,112.88919214661847,7.286904820939512
+smooth_carry_log,Smooth carry + log-price noise,22,107.75786526121598,7.2869048229920645
+smooth_carry_log,Smooth carry + log-price noise,23,103.07274071502498,7.286904825140085
+smooth_carry_log,Smooth carry + log-price noise,24,98.77804321564399,7.286904827383572
+smooth_carry_log,Smooth carry + log-price noise,25,94.82692151745584,7.286904829722529
+smooth_carry_log,Smooth carry + log-price noise,26,91.17973225878443,7.286904832156951
+smooth_carry_log,Smooth carry + log-price noise,27,87.80270516857234,7.286904834686843
+smooth_carry_log,Smooth carry + log-price noise,28,84.6668943001989,7.286904837312201
+smooth_carry_log,Smooth carry + log-price noise,29,81.74734625140499,7.286904840033026
+smooth_carry_log,Smooth carry + log-price noise,30,79.02243474023263,7.28690484284932
+smooth_carry_log,Smooth carry + log-price noise,31,76.47332397271845,7.286904845761082
+smooth_carry_log,Smooth carry + log-price noise,32,74.08353262914449,7.2869048487683115
+smooth_carry_log,Smooth carry + log-price noise,33,71.83857712551618,7.286904851871007
+smooth_carry_log,Smooth carry + log-price noise,34,69.72567782889718,7.286904855069172
+smooth_carry_log,Smooth carry + log-price noise,35,67.73351563582948,7.286904858362802
+smooth_carry_log,Smooth carry + log-price noise,36,65.85202912101718,7.286904861751901
+smooth_carry_log,Smooth carry + log-price noise,37,64.07224458081795,7.286904865236467
+smooth_carry_log,Smooth carry + log-price noise,38,62.38613291197286,7.286904868816502
+smooth_carry_log,Smooth carry + log-price noise,39,60.786488508993116,7.286904872492003
+smooth_carry_log,Smooth carry + log-price noise,40,59.26682632693885,7.286904876262973
+smooth_carry_log,Smooth carry + log-price noise,41,57.82129400818134,7.286904880129411
+smooth_carry_log,Smooth carry + log-price noise,42,56.444596562485096,7.286904884091314
+smooth_carry_log,Smooth carry + log-price noise,43,55.13193155684588,7.286904888148688
+smooth_carry_log,Smooth carry + log-price noise,44,53.87893314307795,7.286904892301527
+smooth_carry_log,Smooth carry + log-price noise,45,52.68162354838991,7.286904896549834
+smooth_carry_log,Smooth carry + log-price noise,46,51.53637089327654,7.286904900893608
+smooth_carry_log,Smooth carry + log-price noise,47,50.43985239436073,7.28690490533285
+smooth_carry_log,Smooth carry + log-price noise,48,49.38902216688013,7.28690490986756
+smooth_carry_log,Smooth carry + log-price noise,49,48.38108296972648,7.286904914497738
+smooth_carry_log,Smooth carry + log-price noise,50,47.41346134108014,7.286904919223383
+smooth_carry_log,Smooth carry + log-price noise,51,46.48378565926423,7.286904924044495
+smooth_carry_log,Smooth carry + log-price noise,52,45.58986673503853,7.286904928961075
+smooth_carry_log,Smooth carry + log-price noise,53,44.72968060099226,7.2869049339731236
+smooth_carry_log,Smooth carry + log-price noise,54,43.901353213226564,7.286904939080639
+smooth_carry_log,Smooth carry + log-price noise,55,43.10314682194433,7.286904944283621
+smooth_carry_log,Smooth carry + log-price noise,56,42.33344780233394,7.286904949582072
+smooth_carry_log,Smooth carry + log-price noise,57,41.59075576641267,7.286904954975991
+smooth_carry_log,Smooth carry + log-price noise,58,40.87367380123107,7.286904960465375
+smooth_carry_log,Smooth carry + log-price noise,59,40.1808996998024,7.28690496605023
+smooth_carry_log,Smooth carry + log-price noise,60,39.51121806893899,7.286904971730551
+smooth_carry_log,Smooth carry + log-price noise,61,38.86349321336714,7.286904977506339
+smooth_carry_log,Smooth carry + log-price noise,62,38.23666270847598,7.286904983377595
+smooth_carry_log,Smooth carry + log-price noise,63,37.629731585185475,7.286904989344318
+smooth_carry_log,Smooth carry + log-price noise,64,37.04176705998309,7.28690499540651
+smooth_carry_log,Smooth carry + log-price noise,65,36.471893751418605,7.286905001564167
+smooth_carry_log,Smooth carry + log-price noise,66,35.91928933146302,7.286905007817294
+smooth_carry_log,Smooth carry + log-price noise,67,35.383180566298044,7.286905014165889
+smooth_carry_log,Smooth carry + log-price noise,68,34.8628397064476,7.28690502060995
+smooth_carry_log,Smooth carry + log-price noise,69,34.35758119081107,7.286905027149478
+smooth_carry_log,Smooth carry + log-price noise,70,33.866758633207844,7.286905033784474
+smooth_carry_log,Smooth carry + log-price noise,71,33.38976206358019,7.28690504051494
+smooth_carry_log,Smooth carry + log-price noise,72,32.92601539909578,7.286905047340871
+smooth_carry_log,Smooth carry + log-price noise,73,32.474974123104914,7.286905054262269
+smooth_carry_log,Smooth carry + log-price noise,74,32.03612315229026,7.286905061279136
+smooth_carry_log,Smooth carry + log-price noise,75,31.608974874444776,7.286905068391471
+smooth_carry_log,Smooth carry + log-price noise,76,31.193067341161797,7.286905075599273
+smooth_carry_log,Smooth carry + log-price noise,77,30.78796260135446,7.286905082902542
+smooth_carry_log,Smooth carry + log-price noise,78,30.393245162966018,7.286905090301278
+smooth_carry_log,Smooth carry + log-price noise,79,30.0085205715122,7.286905097795484
+smooth_carry_log,Smooth carry + log-price noise,80,29.633414095232972,7.286905105385157
+smooth_carry_log,Smooth carry + log-price noise,81,29.26756950764037,7.286905113070296
+smooth_carry_log,Smooth carry + log-price noise,82,28.910647959148303,7.286905120850904
+smooth_carry_log,Smooth carry + log-price noise,83,28.56232693027121,7.286905128726979
+smooth_carry_log,Smooth carry + log-price noise,84,28.22229925959427,7.286905136698521
+smooth_carry_log,Smooth carry + log-price noise,85,27.890272240357483,7.28690514476553
+smooth_carry_log,Smooth carry + log-price noise,86,27.565966780068745,7.28690515292801
+smooth_carry_log,Smooth carry + log-price noise,87,27.249116618074677,7.286905161185954
+smooth_carry_log,Smooth carry + log-price noise,88,26.93946759647887,7.286905169539367
+smooth_carry_log,Smooth carry + log-price noise,89,26.636776980211717,7.286905177988246
+smooth_carry_log,Smooth carry + log-price noise,90,26.340812822428934,7.286905186532596
+smooth_carry_log,Smooth carry + log-price noise,91,26.05135337175191,7.286905195172411
+smooth_carry_log,Smooth carry + log-price noise,92,25.76818651816634,7.286905203907693
+smooth_carry_log,Smooth carry + log-price noise,93,25.491109274669256,7.286905212738444
+smooth_carry_log,Smooth carry + log-price noise,94,25.219927292002517,7.286905221664662
+smooth_carry_log,Smooth carry + log-price noise,95,24.954454404034653,7.286905230686348
+smooth_carry_log,Smooth carry + log-price noise,96,24.694512201556307,7.286905239803501
+smooth_carry_log,Smooth carry + log-price noise,97,24.43992963243895,7.2869052490161215
+smooth_carry_log,Smooth carry + log-price noise,98,24.19054262627357,7.286905258324211
+smooth_carry_log,Smooth carry + log-price noise,99,23.946193741758584,7.286905267727766
+smooth_carry_log,Smooth carry + log-price noise,100,23.70673183524449,7.28690527722679
+smooth_carry_log,Smooth carry + log-price noise,101,23.472011748968878,7.286905286821281
+smooth_carry_log,Smooth carry + log-price noise,102,23.241894017630617,7.286905296511239
+smooth_carry_log,Smooth carry + log-price noise,103,23.016244592056783,7.286905306296666
+smooth_carry_log,Smooth carry + log-price noise,104,22.79493457881185,7.286905316177559
+smooth_carry_log,Smooth carry + log-price noise,105,22.577839994686435,7.286905326153921
+smooth_carry_log,Smooth carry + log-price noise,106,22.364841535082807,7.28690533622575
+smooth_carry_log,Smooth carry + log-price noise,107,22.1558243553882,7.286905346393045
+smooth_carry_log,Smooth carry + log-price noise,108,21.950677864494043,7.28690535665581
+smooth_carry_log,Smooth carry + log-price noise,109,21.749295529681053,7.286905367014041
+smooth_carry_log,Smooth carry + log-price noise,110,21.55157469214701,7.286905377467739
+smooth_carry_log,Smooth carry + log-price noise,111,21.357416392506007,7.286905388016907
+smooth_carry_log,Smooth carry + log-price noise,112,21.166725205635906,7.286905398661541
+smooth_carry_log,Smooth carry + log-price noise,113,20.979409084294996,7.286905409401643
+smooth_carry_log,Smooth carry + log-price noise,114,20.795379210969354,7.286905420237213
+smooth_carry_log,Smooth carry + log-price noise,115,20.614549857449887,7.286905431168249
+smooth_carry_log,Smooth carry + log-price noise,116,20.43683825167264,7.286905442194752
+smooth_carry_log,Smooth carry + log-price noise,117,20.26216445138782,7.286905453316726
+smooth_carry_log,Smooth carry + log-price noise,118,20.090451224252387,7.286905464534166
+smooth_carry_log,Smooth carry + log-price noise,119,19.921623933968462,7.286905475847071
+smooth_carry_log,Smooth carry + log-price noise,120,19.755610432114768,7.286905487255447
+smooth_carry_log,Smooth carry + log-price noise,121,19.59234095534178,7.286905498759289
+smooth_carry_log,Smooth carry + log-price noise,122,19.43174802762293,7.286905510358599
+smooth_carry_log,Smooth carry + log-price noise,123,19.27376636727397,7.286905522053376
+smooth_carry_log,Smooth carry + log-price noise,124,19.118332798471435,7.286905533843621
+smooth_carry_log,Smooth carry + log-price noise,125,18.965386167018213,7.286905545729333
+smooth_carry_log,Smooth carry + log-price noise,126,18.814867260120266,7.286905557710513
+smooth_carry_log,Smooth carry + log-price noise,127,18.666718729953462,7.2869055697871605
+smooth_carry_log,Smooth carry + log-price noise,128,18.52088502081316,7.286905581959277
+smooth_carry_log,Smooth carry + log-price noise,129,18.377312299652232,7.286905594226859
+smooth_carry_log,Smooth carry + log-price noise,130,18.235948389825,7.286905606589908
+smooth_carry_log,Smooth carry + log-price noise,131,18.09674270786581,7.286905619048426
+smooth_carry_log,Smooth carry + log-price noise,132,17.959646203141293,7.286905631602411
+smooth_carry_log,Smooth carry + log-price noise,133,17.824611300225108,7.286905644251863
+smooth_carry_log,Smooth carry + log-price noise,134,17.691591843852887,7.286905656996785
+smooth_carry_log,Smooth carry + log-price noise,135,17.560543046323655,7.286905669837173
+smooth_carry_log,Smooth carry + log-price noise,136,17.431421437221754,7.286905682773027
+smooth_carry_log,Smooth carry + log-price noise,137,17.304184815340744,7.28690569580435
+smooth_carry_log,Smooth carry + log-price noise,138,17.178792202697572,7.286905708931141
+smooth_carry_log,Smooth carry + log-price noise,139,17.055203800531697,7.286905722153398
+smooth_carry_log,Smooth carry + log-price noise,140,16.93338094719004,7.286905735471124
+smooth_carry_log,Smooth carry + log-price noise,141,16.813286077804005,7.286905748884317
+smooth_carry_log,Smooth carry + log-price noise,142,16.6948826856703,7.286905762392979
+smooth_carry_log,Smooth carry + log-price noise,143,16.578135285252156,7.2869057759971065
+smooth_carry_log,Smooth carry + log-price noise,144,16.46300937672218,7.286905789696703
+smooth_carry_log,Smooth carry + log-price noise,145,16.349471411972328,7.286905803491765
+smooth_carry_log,Smooth carry + log-price noise,146,16.237488762020824,7.286905817382296
+smooth_carry_log,Smooth carry + log-price noise,147,16.12702968574933,7.286905831368294
+smooth_carry_log,Smooth carry + log-price noise,148,16.01806329990758,7.28690584544976
+smooth_carry_log,Smooth carry + log-price noise,149,15.910559550325848,7.286905859626695
+smooth_carry_log,Smooth carry + log-price noise,150,15.804489184278925,7.286905873899095
+smooth_carry_log,Smooth carry + log-price noise,151,15.69982372394825,7.286905888266964
+smooth_carry_log,Smooth carry + log-price noise,152,15.596535440931518,7.2869059027303
+smooth_carry_log,Smooth carry + log-price noise,153,15.494597331751992,7.286905917289102
+smooth_carry_log,Smooth carry + log-price noise,154,15.393983094321932,7.286905931943374
+smooth_carry_log,Smooth carry + log-price noise,155,15.294667105317158,7.286905946693113
+smooth_carry_log,Smooth carry + log-price noise,156,15.196624398421791,7.286905961538318
+smooth_carry_log,Smooth carry + log-price noise,157,15.099830643404452,7.286905976478993
+smooth_carry_log,Smooth carry + log-price noise,158,15.004262125988964,7.286905991515133
+smooth_carry_log,Smooth carry + log-price noise,159,14.909895728484738,7.286906006646742
+smooth_carry_log,Smooth carry + log-price noise,160,14.816708911143433,7.286906021873819
+smooth_carry_log,Smooth carry + log-price noise,161,14.724679694210455,7.2869060371963625
+smooth_carry_log,Smooth carry + log-price noise,162,14.633786640641214,7.286906052614374
+smooth_carry_log,Smooth carry + log-price noise,163,14.544008839453546,7.286906068127853
+smooth_carry_log,Smooth carry + log-price noise,164,14.455325889689261,7.2869060837368
+smooth_carry_log,Smooth carry + log-price noise,165,14.367717884958838,7.2869060994412145
+smooth_carry_log,Smooth carry + log-price noise,166,14.281165398544799,7.286906115241096
+smooth_carry_log,Smooth carry + log-price noise,167,14.195649469040255,7.286906131136443
+smooth_carry_log,Smooth carry + log-price noise,168,14.111151586500409,7.286906147127261
+smooth_carry_log,Smooth carry + log-price noise,169,14.027653679085638,7.286906163213544
+smooth_carry_log,Smooth carry + log-price noise,170,13.945138100176097,7.286906179395296
+smooth_carry_log,Smooth carry + log-price noise,171,13.863587615938354,7.286906195672515
+smooth_carry_log,Smooth carry + log-price noise,172,13.782985393325808,7.286906212045202
+smooth_carry_log,Smooth carry + log-price noise,173,13.70331498849525,7.286906228513356
+smooth_carry_log,Smooth carry + log-price noise,174,13.624560335622853,7.286906245076977
+smooth_carry_log,Smooth carry + log-price noise,175,13.546705736103622,7.286906261736067
+smooth_carry_log,Smooth carry + log-price noise,176,13.469735848119031,7.286906278490624
+smooth_carry_log,Smooth carry + log-price noise,177,13.393635676558327,7.286906295340647
+smooth_carry_log,Smooth carry + log-price noise,178,13.318390563279534,7.286906312286138
+smooth_carry_log,Smooth carry + log-price noise,179,13.243986177696925,7.286906329327098
+smooth_carry_log,Smooth carry + log-price noise,180,13.170408507682223,7.286906346463526
+smooth_carry_log,Smooth carry + log-price noise,181,13.097643850767458,7.28690636369542
+smooth_carry_log,Smooth carry + log-price noise,182,13.025678805637789,7.2869063810227805
+smooth_carry_log,Smooth carry + log-price noise,183,12.95450026390331,7.286906398445612
+smooth_carry_log,Smooth carry + log-price noise,184,12.884095402139085,7.286906415963908
+smooth_carry_log,Smooth carry + log-price noise,185,12.81445167418344,7.2869064335776725
+smooth_carry_log,Smooth carry + log-price noise,186,12.745556803684622,7.286906451286904
+smooth_carry_log,Smooth carry + log-price noise,187,12.677398776886639,7.286906469091604
+smooth_carry_log,Smooth carry + log-price noise,188,12.609965835645331,7.28690648699177
+smooth_carry_log,Smooth carry + log-price noise,189,12.54324647066615,7.286906504987405
+smooth_carry_log,Smooth carry + log-price noise,190,12.47722941495548,7.286906523078507
+smooth_carry_log,Smooth carry + log-price noise,191,12.411903637477685,7.2869065412650755
+smooth_carry_log,Smooth carry + log-price noise,192,12.347258337010386,7.286906559547113
+smooth_carry_log,Smooth carry + log-price noise,193,12.283282936190721,7.2869065779246185
+smooth_carry_log,Smooth carry + log-price noise,194,12.219967075745785,7.286906596397588
+smooth_carry_log,Smooth carry + log-price noise,195,12.157300608900588,7.286906614966029
+smooth_carry_log,Smooth carry + log-price noise,196,12.095273595957172,7.286906633629936
+smooth_carry_log,Smooth carry + log-price noise,197,12.033876299038864,7.286906652389312
+smooth_carry_log,Smooth carry + log-price noise,198,11.973099176993758,7.286906671244152
+smooth_carry_log,Smooth carry + log-price noise,199,11.91293288045192,7.2869066901944635
+smooth_carry_log,Smooth carry + log-price noise,200,11.853368247030788,7.286906709240238
+smooth_carry_log,Smooth carry + log-price noise,201,11.794396296683795,7.286906728381483
+smooth_carry_log,Smooth carry + log-price noise,202,11.736008227187062,7.286906747618196
+smooth_carry_log,Smooth carry + log-price noise,203,11.678195409759551,7.286906766950375
+smooth_carry_log,Smooth carry + log-price noise,204,11.620949384812008,7.2869067863780215
+smooth_carry_log,Smooth carry + log-price noise,205,11.564261857820341,7.286906805901138
+smooth_carry_log,Smooth carry + log-price noise,206,11.508124695319168,7.286906825519719
+smooth_carry_log,Smooth carry + log-price noise,207,11.452529921011525,7.2869068452337675
+smooth_carry_log,Smooth carry + log-price noise,208,11.39746971199078,7.286906865043285
+smooth_carry_log,Smooth carry + log-price noise,209,11.342936395070991,7.286906884948269
+smooth_carry_log,Smooth carry + log-price noise,210,11.288922443222148,7.286906904948723
+smooth_carry_log,Smooth carry + log-price noise,211,11.235420472106746,7.286906925044642
+smooth_carry_log,Smooth carry + log-price noise,212,11.18242323671441,7.286906945236029
+smooth_carry_log,Smooth carry + log-price noise,213,11.129923628091287,7.286906965522882
+smooth_carry_log,Smooth carry + log-price noise,214,11.077914670161183,7.286906985905205
+smooth_carry_log,Smooth carry + log-price noise,215,11.026389516635355,7.286907006382996
+smooth_carry_log,Smooth carry + log-price noise,216,10.975341448008184,7.286907026956253
+smooth_carry_log,Smooth carry + log-price noise,217,10.924763868635909,7.286907047624976
+smooth_carry_log,Smooth carry + log-price noise,218,10.874650303895763,7.286907068389168
+smooth_carry_log,Smooth carry + log-price noise,219,10.824994397422916,7.286907089248829
+smooth_carry_log,Smooth carry + log-price noise,220,10.775789908422817,7.286907110203955
+smooth_carry_log,Smooth carry + log-price noise,221,10.727030709056471,7.28690713125455
+smooth_carry_log,Smooth carry + log-price noise,222,10.678710781896392,7.2869071524006115
+smooth_carry_log,Smooth carry + log-price noise,223,10.630824217451016,7.286907173642141
+smooth_carry_log,Smooth carry + log-price noise,224,10.583365211755414,7.286907194979137
+smooth_carry_log,Smooth carry + log-price noise,225,10.536328064026257,7.286907216411603
+smooth_carry_log,Smooth carry + log-price noise,226,10.489707174379033,7.286907237939534
+smooth_carry_log,Smooth carry + log-price noise,227,10.443497041605614,7.286907259562934
+smooth_carry_log,Smooth carry + log-price noise,228,10.397692261010288,7.286907281281801
+smooth_carry_log,Smooth carry + log-price noise,229,10.352287522302515,7.286907303096134
+smooth_carry_log,Smooth carry + log-price noise,230,10.307277607544629,7.286907325005936
+smooth_carry_log,Smooth carry + log-price noise,231,10.262657389152867,7.286907347011206
+smooth_carry_log,Smooth carry + log-price noise,232,10.21842182795008,7.28690736911194
+smooth_carry_log,Smooth carry + log-price noise,233,10.174565971268601,7.286907391308148
+smooth_carry_log,Smooth carry + log-price noise,234,10.131084951101744,7.2869074135998195
+smooth_carry_log,Smooth carry + log-price noise,235,10.087973982302511,7.286907435986958
+smooth_carry_log,Smooth carry + log-price noise,236,10.045228360828101,7.286907458469565
+smooth_carry_log,Smooth carry + log-price noise,237,10.002843462028824,7.2869074810476375
+smooth_carry_log,Smooth carry + log-price noise,238,9.960814738980211,7.286907503721179
+smooth_carry_log,Smooth carry + log-price noise,239,9.919137720856938,7.2869075264901895
+smooth_carry_log,Smooth carry + log-price noise,240,9.877808011347435,7.286907549354665
+smooth_carry_log,Smooth carry + log-price noise,241,9.836821287107965,7.286907572314609
+smooth_carry_log,Smooth carry + log-price noise,242,9.796173296255015,7.286907595370021
+smooth_carry_log,Smooth carry + log-price noise,243,9.755859856894922,7.2869076185209005
+smooth_carry_log,Smooth carry + log-price noise,244,9.715876855689663,7.286907641767247
+smooth_carry_log,Smooth carry + log-price noise,245,9.676220246457747,7.2869076651090605
+smooth_carry_log,Smooth carry + log-price noise,246,9.636886048809254,7.286907688546341
+smooth_carry_log,Smooth carry + log-price noise,247,9.597870346814025,7.286907712079091
+smooth_carry_log,Smooth carry + log-price noise,248,9.55916928770206,7.286907735707308
+smooth_carry_log,Smooth carry + log-price noise,249,9.520779080595245,7.286907759430991
+smooth_carry_log,Smooth carry + log-price noise,250,9.48269599526952,7.286907783250142
+smooth_carry_log,Smooth carry + log-price noise,251,9.444916360946621,7.286907807164761
+smooth_carry_log,Smooth carry + log-price noise,252,9.407436565114617,7.2869078311748465
+constant_log_futures,Constant log-futures noise,6,395.1128931344923,7.286918111086948
+constant_log_futures,Constant log-futures noise,7,338.6681941152791,7.286918111086948
+constant_log_futures,Constant log-futures noise,8,296.3346698508692,7.286918111086948
+constant_log_futures,Constant log-futures noise,9,263.40859542299484,7.286918111086948
+constant_log_futures,Constant log-futures noise,10,237.06773588069538,7.286918111086948
+constant_log_futures,Constant log-futures noise,11,215.51612352790488,7.2869181110869485
+constant_log_futures,Constant log-futures noise,12,197.55644656724616,7.286918111086948
+constant_log_futures,Constant log-futures noise,13,182.35979683130412,7.286918111086947
+constant_log_futures,Constant log-futures noise,14,169.33409705763955,7.286918111086948
+constant_log_futures,Constant log-futures noise,15,158.04515725379693,7.286918111086948
+constant_log_futures,Constant log-futures noise,16,148.1673349254346,7.286918111086948
+constant_log_futures,Constant log-futures noise,17,139.45160934158554,7.2869181110869485
+constant_log_futures,Constant log-futures noise,18,131.70429771149742,7.286918111086948
+constant_log_futures,Constant log-futures noise,19,124.77249256878703,7.286918111086948
+constant_log_futures,Constant log-futures noise,20,118.53386794034769,7.286918111086948
+constant_log_futures,Constant log-futures noise,21,112.88939803842636,7.286918111086948
+constant_log_futures,Constant log-futures noise,22,107.75806176395244,7.2869181110869485
+constant_log_futures,Constant log-futures noise,23,103.0729286437806,7.286918111086947
+constant_log_futures,Constant log-futures noise,24,98.77822328362308,7.286918111086948
+constant_log_futures,Constant log-futures noise,25,94.82709435227814,7.286918111086948
+constant_log_futures,Constant log-futures noise,26,91.17989841565206,7.286918111086947
+constant_log_futures,Constant log-futures noise,27,87.80286514099829,7.286918111086948
+constant_log_futures,Constant log-futures noise,28,84.66704852881978,7.286918111086948
+constant_log_futures,Constant log-futures noise,29,81.74749513127426,7.286918111086947
+constant_log_futures,Constant log-futures noise,30,79.02257862689846,7.286918111086948
+constant_log_futures,Constant log-futures noise,31,76.47346318732109,7.2869181110869485
+constant_log_futures,Constant log-futures noise,32,74.0836674627173,7.286918111086948
+constant_log_futures,Constant log-futures noise,33,71.83870784263496,7.2869181110869485
+constant_log_futures,Constant log-futures noise,34,69.72580467079277,7.2869181110869485
+constant_log_futures,Constant log-futures noise,35,67.73363882305583,7.286918111086947
+constant_log_futures,Constant log-futures noise,36,65.85214885574871,7.286918111086948
+constant_log_futures,Constant log-futures noise,37,64.07236104883658,7.286918111086947
+constant_log_futures,Constant log-futures noise,38,62.386246284393515,7.286918111086948
+constant_log_futures,Constant log-futures noise,39,60.786598943768034,7.286918111086947
+constant_log_futures,Constant log-futures noise,40,59.266933970173845,7.286918111086948
+constant_log_futures,Constant log-futures noise,41,57.82139899529155,7.2869181110869485
+constant_log_futures,Constant log-futures noise,42,56.44469901921318,7.286918111086948
+constant_log_futures,Constant log-futures noise,43,55.13203160016172,7.2869181110869485
+constant_log_futures,Constant log-futures noise,44,53.87903088197622,7.2869181110869485
+constant_log_futures,Constant log-futures noise,45,52.68171908459897,7.2869181110869485
+constant_log_futures,Constant log-futures noise,46,51.5364643218903,7.286918111086947
+constant_log_futures,Constant log-futures noise,47,50.43994380440327,7.2869181110869485
+constant_log_futures,Constant log-futures noise,48,49.38911164181154,7.286918111086948
+constant_log_futures,Constant log-futures noise,49,48.38117058789702,7.2869181110869485
+constant_log_futures,Constant log-futures noise,50,47.41354717613907,7.286918111086948
+constant_log_futures,Constant log-futures noise,51,46.48386978052851,7.2869181110869485
+constant_log_futures,Constant log-futures noise,52,45.58994920782603,7.286918111086947
+constant_log_futures,Constant log-futures noise,53,44.72976148692366,7.2869181110869485
+constant_log_futures,Constant log-futures noise,54,43.901432570499146,7.286918111086948
+constant_log_futures,Constant log-futures noise,55,43.10322470558098,7.2869181110869485
+constant_log_futures,Constant log-futures noise,56,42.33352426440989,7.286918111086948
+constant_log_futures,Constant log-futures noise,57,41.59083085626234,7.286918111086948
+constant_log_futures,Constant log-futures noise,58,40.87374756563713,7.286918111086947
+constant_log_futures,Constant log-futures noise,59,40.180972183168706,7.286918111086948
+constant_log_futures,Constant log-futures noise,60,39.51128931344923,7.286918111086948
+constant_log_futures,Constant log-futures noise,61,38.86356325913039,7.286918111086948
+constant_log_futures,Constant log-futures noise,62,38.236731593660544,7.2869181110869485
+constant_log_futures,Constant log-futures noise,63,37.62979934614212,7.286918111086948
+constant_log_futures,Constant log-futures noise,64,37.04183373135865,7.286918111086948
+constant_log_futures,Constant log-futures noise,65,36.471959366260826,7.286918111086948
+constant_log_futures,Constant log-futures noise,66,35.91935392131748,7.2869181110869485
+constant_log_futures,Constant log-futures noise,67,35.38324416129782,7.286918111086949
+constant_log_futures,Constant log-futures noise,68,34.862902335396385,7.2869181110869485
+constant_log_futures,Constant log-futures noise,69,34.3576428812602,7.286918111086948
+constant_log_futures,Constant log-futures noise,70,33.86681941152791,7.286918111086947
+constant_log_futures,Constant log-futures noise,71,33.38982195502752,7.2869181110869485
+constant_log_futures,Constant log-futures noise,72,32.926074427874354,7.286918111086948
+constant_log_futures,Constant log-futures noise,73,32.47503231242403,7.286918111086948
+constant_log_futures,Constant log-futures noise,74,32.03618052441829,7.286918111086947
+constant_log_futures,Constant log-futures noise,75,31.60903145075938,7.2869181110869485
+constant_log_futures,Constant log-futures noise,76,31.193123142196757,7.286918111086948
+constant_log_futures,Constant log-futures noise,77,30.788017646843553,7.286918111086948
+constant_log_futures,Constant log-futures noise,78,30.393299471884017,7.286918111086947
+constant_log_futures,Constant log-futures noise,79,30.008574162113337,7.2869181110869485
+constant_log_futures,Constant log-futures noise,80,29.633466985086923,7.286918111086948
+constant_log_futures,Constant log-futures noise,81,29.267621713666095,7.286918111086947
+constant_log_futures,Constant log-futures noise,82,28.910699497645776,7.2869181110869485
+constant_log_futures,Constant log-futures noise,83,28.56237781695125,7.2869181110869485
+constant_log_futures,Constant log-futures noise,84,28.22234950960659,7.286918111086948
+constant_log_futures,Constant log-futures noise,85,27.890321868317102,7.286918111086947
+constant_log_futures,Constant log-futures noise,86,27.56601580008086,7.2869181110869485
+constant_log_futures,Constant log-futures noise,87,27.24916504375809,7.2869181110869485
+constant_log_futures,Constant log-futures noise,88,26.93951544098811,7.2869181110869485
+constant_log_futures,Constant log-futures noise,89,26.636824256257903,7.286918111086947
+constant_log_futures,Constant log-futures noise,90,26.340859542299484,7.2869181110869485
+constant_log_futures,Constant log-futures noise,91,26.051399547329158,7.286918111086948
+constant_log_futures,Constant log-futures noise,92,25.76823216094515,7.286918111086947
+constant_log_futures,Constant log-futures noise,93,25.491154395773695,7.286918111086947
+constant_log_futures,Constant log-futures noise,94,25.219971902201635,7.2869181110869485
+constant_log_futures,Constant log-futures noise,95,24.95449851375741,7.2869181110869485
+constant_log_futures,Constant log-futures noise,96,24.69455582090577,7.286918111086948
+constant_log_futures,Constant log-futures noise,97,24.439972771205706,7.286918111086947
+constant_log_futures,Constant log-futures noise,98,24.19058529394851,7.2869181110869485
+constant_log_futures,Constant log-futures noise,99,23.946235947544984,7.286918111086948
+constant_log_futures,Constant log-futures noise,100,23.706773588069534,7.286918111086948
+constant_log_futures,Constant log-futures noise,101,23.47205305749459,7.286918111086947
+constant_log_futures,Constant log-futures noise,102,23.241934890264254,7.2869181110869485
+constant_log_futures,Constant log-futures noise,103,23.016285036960713,7.286918111086948
+constant_log_futures,Constant log-futures noise,104,22.794974603913015,7.286918111086947
+constant_log_futures,Constant log-futures noise,105,22.577879607685276,7.2869181110869485
+constant_log_futures,Constant log-futures noise,106,22.36488074346183,7.2869181110869485
+constant_log_futures,Constant log-futures noise,107,22.15586316642013,7.286918111086948
+constant_log_futures,Constant log-futures noise,108,21.950716285249573,7.286918111086948
+constant_log_futures,Constant log-futures noise,109,21.74933356703627,7.286918111086948
+constant_log_futures,Constant log-futures noise,110,21.55161235279049,7.2869181110869485
+constant_log_futures,Constant log-futures noise,111,21.35745368294553,7.286918111086948
+constant_log_futures,Constant log-futures noise,112,21.166762132204944,7.286918111086948
+constant_log_futures,Constant log-futures noise,113,20.979445653158884,7.2869181110869485
+constant_log_futures,Constant log-futures noise,114,20.79541542813117,7.286918111086948
+constant_log_futures,Constant log-futures noise,115,20.61458572875612,7.2869181110869485
+constant_log_futures,Constant log-futures noise,116,20.436873782818566,7.286918111086947
+constant_log_futures,Constant log-futures noise,117,20.26219964792268,7.2869181110869485
+constant_log_futures,Constant log-futures noise,118,20.090486091584353,7.286918111086948
+constant_log_futures,Constant log-futures noise,119,19.92165847736936,7.286918111086948
+constant_log_futures,Constant log-futures noise,120,19.755644656724616,7.286918111086948
+constant_log_futures,Constant log-futures noise,121,19.59237486617317,7.2869181110869485
+constant_log_futures,Constant log-futures noise,122,19.431781629565194,7.286918111086948
+constant_log_futures,Constant log-futures noise,123,19.273799665097187,7.286918111086948
+constant_log_futures,Constant log-futures noise,124,19.118365796830272,7.2869181110869485
+constant_log_futures,Constant log-futures noise,125,18.965418870455633,7.2869181110869485
+constant_log_futures,Constant log-futures noise,126,18.81489967307106,7.286918111086948
+constant_log_futures,Constant log-futures noise,127,18.66675085674767,7.286918111086948
+constant_log_futures,Constant log-futures noise,128,18.520916865679325,7.286918111086948
+constant_log_futures,Constant log-futures noise,129,18.377343866720572,7.286918111086948
+constant_log_futures,Constant log-futures noise,130,18.235979683130413,7.286918111086948
+constant_log_futures,Constant log-futures noise,131,18.096773731350794,7.286918111086948
+constant_log_futures,Constant log-futures noise,132,17.95967696065874,7.2869181110869485
+constant_log_futures,Constant log-futures noise,133,17.824641795541005,7.2869181110869485
+constant_log_futures,Constant log-futures noise,134,17.69162208064891,7.286918111086949
+constant_log_futures,Constant log-futures noise,135,17.560573028199656,7.286918111086948
+constant_log_futures,Constant log-futures noise,136,17.431451167698192,7.2869181110869485
+constant_log_futures,Constant log-futures noise,137,17.304214297860977,7.286918111086948
+constant_log_futures,Constant log-futures noise,138,17.1788214406301,7.286918111086948
+constant_log_futures,Constant log-futures noise,139,17.05523279717233,7.286918111086948
+constant_log_futures,Constant log-futures noise,140,16.933409705763957,7.286918111086947
+constant_log_futures,Constant log-futures noise,141,16.813314601467756,7.286918111086948
+constant_log_futures,Constant log-futures noise,142,16.69491097751376,7.2869181110869485
+constant_log_futures,Constant log-futures noise,143,16.578163348300375,7.2869181110869485
+constant_log_futures,Constant log-futures noise,144,16.463037213937177,7.286918111086948
+constant_log_futures,Constant log-futures noise,145,16.34949902625485,7.286918111086948
+constant_log_futures,Constant log-futures noise,146,16.237516156212013,7.286918111086948
+constant_log_futures,Constant log-futures noise,147,16.12705686263234,7.286918111086948
+constant_log_futures,Constant log-futures noise,148,16.018090262209146,7.286918111086947
+constant_log_futures,Constant log-futures noise,149,15.910586300717812,7.2869181110869485
+constant_log_futures,Constant log-futures noise,150,15.80451572537969,7.2869181110869485
+constant_log_futures,Constant log-futures noise,151,15.699850058324197,7.286918111086948
+constant_log_futures,Constant log-futures noise,152,15.596561571098379,7.286918111086948
+constant_log_futures,Constant log-futures noise,153,15.49462326017617,7.286918111086948
+constant_log_futures,Constant log-futures noise,154,15.394008823421776,7.286918111086948
+constant_log_futures,Constant log-futures noise,155,15.294692637464218,7.286918111086947
+constant_log_futures,Constant log-futures noise,156,15.196649735942009,7.286918111086947
+constant_log_futures,Constant log-futures noise,157,15.099855788579323,7.286918111086948
+constant_log_futures,Constant log-futures noise,158,15.004287081056669,7.2869181110869485
+constant_log_futures,Constant log-futures noise,159,14.909920495641218,7.2869181110869485
+constant_log_futures,Constant log-futures noise,160,14.816733492543461,7.286918111086948
+constant_log_futures,Constant log-futures noise,161,14.724704091968656,7.286918111086948
+constant_log_futures,Constant log-futures noise,162,14.633810856833048,7.286918111086947
+constant_log_futures,Constant log-futures noise,163,14.54403287611628,7.286918111086948
+constant_log_futures,Constant log-futures noise,164,14.455349748822888,7.2869181110869485
+constant_log_futures,Constant log-futures noise,165,14.367741568526991,7.286918111086948
+constant_log_futures,Constant log-futures noise,166,14.281188908475626,7.2869181110869485
+constant_log_futures,Constant log-futures noise,167,14.195672807227266,7.286918111086948
+constant_log_futures,Constant log-futures noise,168,14.111174754803296,7.286918111086948
+constant_log_futures,Constant log-futures noise,169,14.027676679331087,7.286918111086948
+constant_log_futures,Constant log-futures noise,170,13.945160934158551,7.286918111086947
+constant_log_futures,Constant log-futures noise,171,13.863610285420782,7.286918111086947
+constant_log_futures,Constant log-futures noise,172,13.78300790004043,7.2869181110869485
+constant_log_futures,Constant log-futures noise,173,13.70333733414424,7.286918111086948
+constant_log_futures,Constant log-futures noise,174,13.624582521879045,7.2869181110869485
+constant_log_futures,Constant log-futures noise,175,13.546727764611164,7.286918111086948
+constant_log_futures,Constant log-futures noise,176,13.469757720494055,7.2869181110869485
+constant_log_futures,Constant log-futures noise,177,13.393657394389571,7.286918111086948
+constant_log_futures,Constant log-futures noise,178,13.318412128128951,7.286918111086947
+constant_log_futures,Constant log-futures noise,179,13.2440075911003,7.286918111086947
+constant_log_futures,Constant log-futures noise,180,13.170429771149742,7.2869181110869485
+constant_log_futures,Constant log-futures noise,181,13.097664965784274,7.286918111086948
+constant_log_futures,Constant log-futures noise,182,13.025699773664579,7.286918111086948
+constant_log_futures,Constant log-futures noise,183,12.954521086376797,7.2869181110869485
+constant_log_futures,Constant log-futures noise,184,12.884116080472575,7.286918111086947
+constant_log_futures,Constant log-futures noise,185,12.814472209767317,7.286918111086948
+constant_log_futures,Constant log-futures noise,186,12.745577197886847,7.286918111086947
+constant_log_futures,Constant log-futures noise,187,12.677419031053226,7.286918111086948
+constant_log_futures,Constant log-futures noise,188,12.609985951100818,7.2869181110869485
+constant_log_futures,Constant log-futures noise,189,12.54326644871404,7.286918111086948
+constant_log_futures,Constant log-futures noise,190,12.477249256878705,7.2869181110869485
+constant_log_futures,Constant log-futures noise,191,12.411923344539025,7.286918111086948
+constant_log_futures,Constant log-futures noise,192,12.347277910452885,7.286918111086948
+constant_log_futures,Constant log-futures noise,193,12.283302377238101,7.286918111086948
+constant_log_futures,Constant log-futures noise,194,12.219986385602853,7.286918111086947
+constant_log_futures,Constant log-futures noise,195,12.157319788753608,7.2869181110869485
+constant_log_futures,Constant log-futures noise,196,12.095292646974254,7.2869181110869485
+constant_log_futures,Constant log-futures noise,197,12.033895222370324,7.2869181110869485
+constant_log_futures,Constant log-futures noise,198,11.973117973772492,7.286918111086948
+constant_log_futures,Constant log-futures noise,199,11.912951551793737,7.286918111086947
+constant_log_futures,Constant log-futures noise,200,11.853386794034767,7.286918111086948
+constant_log_futures,Constant log-futures noise,201,11.794414720432606,7.286918111086948
+constant_log_futures,Constant log-futures noise,202,11.736026528747296,7.286918111086947
+constant_log_futures,Constant log-futures noise,203,11.678213590182038,7.286918111086948
+constant_log_futures,Constant log-futures noise,204,11.620967445132127,7.2869181110869485
+constant_log_futures,Constant log-futures noise,205,11.564279799058312,7.2869181110869485
+constant_log_futures,Constant log-futures noise,206,11.508142518480357,7.286918111086948
+constant_log_futures,Constant log-futures noise,207,11.452547627086732,7.286918111086947
+constant_log_futures,Constant log-futures noise,208,11.397487301956508,7.286918111086947
+constant_log_futures,Constant log-futures noise,209,11.34295386988973,7.286918111086947
+constant_log_futures,Constant log-futures noise,210,11.288939803842638,7.2869181110869485
+constant_log_futures,Constant log-futures noise,211,11.235437719464235,7.2869181110869485
+constant_log_futures,Constant log-futures noise,212,11.182440371730914,7.2869181110869485
+constant_log_futures,Constant log-futures noise,213,11.12994065167584,7.2869181110869485
+constant_log_futures,Constant log-futures noise,214,11.077931583210065,7.286918111086948
+constant_log_futures,Constant log-futures noise,215,11.026406320032342,7.286918111086948
+constant_log_futures,Constant log-futures noise,216,10.975358142624787,7.286918111086948
+constant_log_futures,Constant log-futures noise,217,10.924780455331584,7.286918111086948
+constant_log_futures,Constant log-futures noise,218,10.874666783518135,7.286918111086948
+constant_log_futures,Constant log-futures noise,219,10.825010770808008,7.2869181110869485
+constant_log_futures,Constant log-futures noise,220,10.775806176395244,7.2869181110869485
+constant_log_futures,Constant log-futures noise,221,10.727046872429655,7.286918111086948
+constant_log_futures,Constant log-futures noise,222,10.678726841472765,7.286918111086948
+constant_log_futures,Constant log-futures noise,223,10.630840174022216,7.2869181110869485
+constant_log_futures,Constant log-futures noise,224,10.583381066102472,7.286918111086948
+constant_log_futures,Constant log-futures noise,225,10.536343816919794,7.286918111086948
+constant_log_futures,Constant log-futures noise,226,10.489722826579442,7.2869181110869485
+constant_log_futures,Constant log-futures noise,227,10.443512593863232,7.286918111086948
+constant_log_futures,Constant log-futures noise,228,10.397707714065586,7.286918111086948
+constant_log_futures,Constant log-futures noise,229,10.35230287688626,7.286918111086948
+constant_log_futures,Constant log-futures noise,230,10.30729286437806,7.2869181110869485
+constant_log_futures,Constant log-futures noise,231,10.262672548947851,7.286918111086948
+constant_log_futures,Constant log-futures noise,232,10.218436891409283,7.286918111086947
+constant_log_futures,Constant log-futures noise,233,10.174580939085638,7.2869181110869485
+constant_log_futures,Constant log-futures noise,234,10.13109982396134,7.2869181110869485
+constant_log_futures,Constant log-futures noise,235,10.087988760880654,7.286918111086948
+constant_log_futures,Constant log-futures noise,236,10.045243045792176,7.286918111086948
+constant_log_futures,Constant log-futures noise,237,10.002858054037779,7.286918111086947
+constant_log_futures,Constant log-futures noise,238,9.96082923868468,7.286918111086948
+constant_log_futures,Constant log-futures noise,239,9.919152128899386,7.286918111086947
+constant_log_futures,Constant log-futures noise,240,9.877822328362308,7.286918111086948
+constant_log_futures,Constant log-futures noise,241,9.836835513721798,7.286918111086948
+constant_log_futures,Constant log-futures noise,242,9.796187433086585,7.2869181110869485
+constant_log_futures,Constant log-futures noise,243,9.755873904555365,7.2869181110869485
+constant_log_futures,Constant log-futures noise,244,9.715890814782597,7.286918111086948
+constant_log_futures,Constant log-futures noise,245,9.676234117579403,7.286918111086948
+constant_log_futures,Constant log-futures noise,246,9.636899832548593,7.286918111086948
+constant_log_futures,Constant log-futures noise,247,9.597884043752849,7.286918111086948
+constant_log_futures,Constant log-futures noise,248,9.559182898415136,7.2869181110869485
+constant_log_futures,Constant log-futures noise,249,9.520792605650417,7.286918111086948
+constant_log_futures,Constant log-futures noise,250,9.482709435227816,7.2869181110869485
+constant_log_futures,Constant log-futures noise,251,9.444929716362365,7.286918111086948
+constant_log_futures,Constant log-futures noise,252,9.40744983653553,7.286918111086948

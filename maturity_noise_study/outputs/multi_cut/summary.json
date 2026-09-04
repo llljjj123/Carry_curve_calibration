@@ -1,0 +1,61 @@
+{
+  "created_at": "2026-09-04T16:30:15.459258+08:00",
+  "settings": {
+    "evaluation_date": "2026-08-21",
+    "sample_dates": 991,
+    "test_dates_per_window": 120,
+    "windows": 5,
+    "minimum_training_dates": 300,
+    "kappa_gap_upper_bound": 120.0,
+    "eta_fast_upper_bound": 6.0,
+    "optimizer_starts": 12,
+    "optimizer_maxiter": 1500,
+    "random_seed": 852,
+    "resume": true
+  },
+  "sample_start": "2022-07-22",
+  "sample_end": "2026-08-21",
+  "windows": [
+    {
+      "window": 1,
+      "training_dates": 391,
+      "cut_date": "2024-03-04 00:00:00",
+      "test_start": "2024-03-05 00:00:00",
+      "test_end": "2024-08-27 00:00:00"
+    },
+    {
+      "window": 2,
+      "training_dates": 511,
+      "cut_date": "2024-08-27 00:00:00",
+      "test_start": "2024-08-28 00:00:00",
+      "test_end": "2025-03-03 00:00:00"
+    },
+    {
+      "window": 3,
+      "training_dates": 631,
+      "cut_date": "2025-03-03 00:00:00",
+      "test_start": "2025-03-04 00:00:00",
+      "test_end": "2025-08-25 00:00:00"
+    },
+    {
+      "window": 4,
+      "training_dates": 751,
+      "cut_date": "2025-08-25 00:00:00",
+      "test_start": "2025-08-26 00:00:00",
+      "test_end": "2026-02-27 00:00:00"
+    },
+    {
+      "window": 5,
+      "training_dates": 871,
+      "cut_date": "2026-02-27 00:00:00",
+      "test_start": "2026-03-02 00:00:00",
+      "test_end": "2026-08-21 00:00:00"
+    }
+  ],
+  "candidate_model": "constant_log_futures",
+  "candidate_carry_rmse_improvement_vs_constant_pct": 5.947869276434659,
+  "candidate_futures_rmse_improvement_vs_constant_pct": 5.593896697880707,
+  "candidate_mean_log_score_gain_vs_constant": 0.31080481845228825,
+  "candidate_gap_upper_bound_hits": 0,
+  "candidate_eta_fast_upper_bound_hits": 0
+}

@@ -1,0 +1,27 @@
+{
+  "model": "smooth_carry_log",
+  "stage": "train",
+  "sample_start": "2022-07-22",
+  "sample_end": "2025-10-29",
+  "sample_dates": 792,
+  "sample_observations": 2931,
+  "kappa_gap_upper_bound": 120.0,
+  "eta_fast_upper_bound": 6.0,
+  "optimizer_starts": 12,
+  "optimizer_maxiter": 1500,
+  "random_seed": 852,
+  "parameters": {
+    "model": "smooth_carry_log",
+    "kappa_slow": 0.4273004710582749,
+    "kappa_fast": 16.374547228188288,
+    "theta": 0.04046206346053913,
+    "eta_slow": 0.046623578832001,
+    "eta_fast": 1.246256418268865,
+    "sigma_carry_floor": 7.46814464388376e-07,
+    "sigma_log_futures": 0.0009818211827634568
+  },
+  "comparison_log_likelihood": 9296.023505721983,
+  "converged": true,
+  "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+  "elapsed_seconds": 617.147542199993
+}

@@ -32,7 +32,7 @@ dx_j,t = -kappa_j x_j,t dt + eta_j dW_j,t
 0 < kappa_slow < kappa_fast.
 ```
 
-The observed maturity-average carry is
+The backward-compatible `constant_carry` observation equation is
 
 ```text
 y_t(tau) = theta
@@ -43,6 +43,30 @@ y_t(tau) = theta
 B(kappa,tau) = (1-exp(-kappa*tau))/(kappa*tau)
 epsilon ~ N(0, sigma_epsilon^2).
 ```
+
+The production-candidate `constant_log_futures` equation instead filters the
+native log-futures observation
+
+```text
+z_t(tau) = log(F_t,T/S_t) - r_t tau
+         = -theta tau
+           - tau B(kappa_slow,tau) x_slow,t
+           - tau B(kappa_fast,tau) x_fast,t
+           + epsilon_logF,tau
+
+epsilon_logF ~ N(0, sigma_log_futures^2).
+```
+
+In annualized-carry units this implies
+
+```text
+sigma_carry(tau) = sigma_log_futures / tau.
+```
+
+The log-futures likelihood includes the exact `sum(log(tau))` Jacobian when
+reported, so likelihoods, AIC, BIC, and predictive scores remain comparable
+with carry-space runs. Both the one- and two-factor models use the selected
+observation equation, preserving their like-for-like comparison.
 
 Opposite-signed slow and fast states allow a fitted curve to contain a hump or
 U-shape. Centered factors and a single `theta` avoid the unidentifiable separate
@@ -75,6 +99,23 @@ CSV cache under `data/raw/` is used. The equivalent analysis entry point is:
 Full-sample, latest rolling-window, and explicit train/test structural estimation
 are selected through `estimation.mode`. Diagnostic rolling estimates and all
 optimizer start counts are separately configurable.
+
+`config.yaml` retains `constant_carry` as the default. The validated candidate
+configuration writes to a separate output directory and can be run with:
+
+```powershell
+& 'D:\miniforge3\envs\spyder-env\python.exe' -m im_2factor_ou_carry `
+  --config .\config_log_futures.yaml
+```
+
+The relevant settings are:
+
+```yaml
+estimation:
+  observation_noise_model: constant_log_futures
+  kappa_gap_upper_bound: 120.0
+  eta_fast_upper_bound: 6.0
+```
 
 ## Primary outputs
 
@@ -144,7 +185,10 @@ known one- and two-factor OU parameters.
 
 - State shocks are independent; correlation can be added after identification is
   demonstrated.
-- Observation noise is Gaussian, constant through time, and common across maturities.
+- Observation noise is Gaussian and constant through time. Under
+  `constant_carry` it is common in annualized-carry units; under
+  `constant_log_futures` it is common in log-futures units and therefore scales
+  as `1/tau` when expressed as annualized carry.
 - The factors are stationary. A permanent structural carry trend may require a
   time-varying mean or regime model rather than merely a slow OU factor.
 - Two factors generally support one economically meaningful turning point, not an

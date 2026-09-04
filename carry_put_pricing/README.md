@@ -203,9 +203,10 @@ turning a curve-fit residual into an exercise payoff.
 
 ## Agreed example
 
-The example script reads the latest calibrated parameters, filtered factors, and
-valid nearest futures quote from `../im_2factor_ou_carry/outputs`. With the current
-snapshot this selects IM2609 on 2026-08-21, expiring 2026-09-18.
+By default, the example script reads the latest calibrated parameters, filtered
+factors, and valid nearest futures quote from
+`../im_2factor_ou_carry/outputs`. With the current snapshot this selects IM2609
+on 2026-08-21, expiring 2026-09-18.
 
 From this directory in PowerShell:
 
@@ -214,7 +215,17 @@ $env:PYTHONPATH = (Resolve-Path .\src)
 & 'D:\miniconda3\envs\GuoYuan\python.exe' -B .\analysis\run_example.py
 ```
 
-Generated files are written to `outputs/`:
+To price from the opt-in constant-log-futures calibration while preserving the
+baseline pricing snapshot, select both directories explicitly:
+
+```powershell
+& 'D:\miniforge3\envs\spyder-env\python.exe' -B .\analysis\run_example.py `
+    --calibration-output-dir ..\im_2factor_ou_carry\outputs_log_futures `
+    --output-dir outputs_log_futures
+```
+
+Generated files are written to `outputs/` by default, or to the directory given
+by `--output-dir`:
 
 - `example_result.json`: inputs, assumptions, diagnostics, and base price;
 - `grid_convergence.csv`: coarse/base/fine numerical comparison;

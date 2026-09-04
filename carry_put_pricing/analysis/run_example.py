@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from dataclasses import asdict
@@ -24,8 +25,10 @@ from carry_put_pricing import (  # noqa: E402
 )
 
 
-def _load_agreed_inputs() -> tuple[CarryPutContract, TwoFactorOUParams, FactorState, GBMParams, dict[str, object]]:
-    source = WORKSPACE_ROOT / "im_2factor_ou_carry" / "outputs"
+def _load_agreed_inputs(
+    source: Path,
+) -> tuple[CarryPutContract, TwoFactorOUParams, FactorState, GBMParams, dict[str, object]]:
+    source = source.resolve()
     parameter_rows = pd.read_csv(source / "two_factor_parameters.csv")
     estimates = parameter_rows.set_index("parameter")["estimate"].astype(float).to_dict()
     state_row = pd.read_csv(source / "two_factor_filtered_states.csv").iloc[-1]
@@ -61,8 +64,30 @@ def _load_agreed_inputs() -> tuple[CarryPutContract, TwoFactorOUParams, FactorSt
     return contract, params, state, gbm, metadata
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Price the carry put from a production calibration snapshot."
+    )
+    parser.add_argument(
+        "--calibration-output-dir",
+        type=Path,
+        default=WORKSPACE_ROOT / "im_2factor_ou_carry" / "outputs",
+        help="Directory containing the production two-factor calibration CSV files.",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=PROJECT_ROOT / "outputs",
+        help="Directory for pricing results.",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    contract, params, state, gbm, metadata = _load_agreed_inputs()
+    args = parse_args()
+    contract, params, state, gbm, metadata = _load_agreed_inputs(
+        args.calibration_output_dir
+    )
     configurations = {
         "coarse": NumericalConfig(
             slow_grid_points=201,
@@ -80,7 +105,7 @@ def main() -> None:
     }
     base = results["base"]
 
-    output_dir = PROJECT_ROOT / "outputs"
+    output_dir = args.output_dir.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
     convergence = pd.DataFrame(
         [

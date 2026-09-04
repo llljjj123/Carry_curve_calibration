@@ -1,0 +1,5 @@
+﻿parameter,estimate,standard_error,observation_noise_model,native_observation_units,log_likelihood,optimizer_converged,optimizer_message,hessian_stable,half_life_years,half_life_sessions
+kappa,2.4542844094703993,,constant_log_futures,log_futures_price,7428.21151780132,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,0.28242333198437947,68.9112930041886
+theta,0.07625916729098305,,constant_log_futures,log_futures_price,7428.21151780132,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,0.28242333198437947,68.9112930041886
+eta,0.2634681360085957,,constant_log_futures,log_futures_price,7428.21151780132,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,0.28242333198437947,68.9112930041886
+sigma_log_futures,0.002808378220339543,,constant_log_futures,log_futures_price,7428.21151780132,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,0.28242333198437947,68.9112930041886

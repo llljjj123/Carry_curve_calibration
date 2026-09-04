@@ -96,7 +96,12 @@ def plot_states(states: pd.DataFrame, path: Path) -> None:
 def plot_rolling_parameters(rolling: pd.DataFrame, path: Path) -> None:
     if rolling.empty:
         return
-    columns = ["kappa", "theta", "eta", "sigma_epsilon"]
+    noise_column = (
+        "sigma_log_futures"
+        if "sigma_log_futures" in rolling.columns
+        else "sigma_epsilon"
+    )
+    columns = ["kappa", "theta", "eta", noise_column]
     fig, axes = plt.subplots(2, 2, figsize=(10, 7), sharex=True)
     for ax, column in zip(axes.ravel(), columns, strict=True):
         ax.plot(rolling["window_end"], rolling[column], marker="o", markersize=3)
@@ -171,7 +176,12 @@ def plot_factor_loadings(kappa_slow: float, kappa_fast: float, path: Path) -> No
 def plot_two_factor_rolling(rolling: pd.DataFrame, path: Path) -> None:
     if rolling.empty:
         return
-    columns = ["kappa_slow", "kappa_fast", "theta", "eta_slow", "eta_fast", "sigma_epsilon"]
+    noise_column = (
+        "sigma_log_futures"
+        if "sigma_log_futures" in rolling.columns
+        else "sigma_epsilon"
+    )
+    columns = ["kappa_slow", "kappa_fast", "theta", "eta_slow", "eta_fast", noise_column]
     fig, axes = plt.subplots(3, 2, figsize=(11, 9), sharex=True)
     for ax, column in zip(axes.ravel(), columns, strict=True):
         ax.plot(rolling["window_end"], rolling[column], marker="o", markersize=3)

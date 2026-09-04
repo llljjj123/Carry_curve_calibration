@@ -28,6 +28,7 @@ from .diagnostics import (
 from .estimation import EstimationResult, estimate_ou, parameter_table
 from .fitting import attach_model_fits
 from .kalman import kalman_filter
+from .observation import noise_parameter_name, normalize_observation_noise_model
 from .plots import (
     plot_acf,
     plot_curve_comparison,
@@ -91,6 +92,9 @@ def _estimate_two(
     standard_errors: bool = True,
 ) -> TwoFactorEstimationResult:
     cfg = config["estimation"]
+    observation_model = normalize_observation_noise_model(
+        cfg.get("observation_noise_model", "constant_carry")
+    )
     return estimate_two_factor_ou(
         panel,
         gap_function=gap_function(config),
@@ -98,6 +102,9 @@ def _estimate_two(
         maxiter=int(cfg.get("optimizer_maxiter", 1500)),
         seed=int(cfg.get("random_seed", 852)),
         compute_standard_errors=standard_errors,
+        eta_fast_upper_bound=float(cfg.get("eta_fast_upper_bound", 3.0)),
+        kappa_gap_upper_bound=float(cfg.get("kappa_gap_upper_bound", 60.0)),
+        observation_noise_model=observation_model,
     )
 
 
@@ -109,6 +116,9 @@ def _estimate_one(
     standard_errors: bool = True,
 ) -> EstimationResult:
     cfg = config["estimation"]
+    observation_model = normalize_observation_noise_model(
+        cfg.get("observation_noise_model", "constant_carry")
+    )
     return estimate_ou(
         panel,
         gap_function=gap_function(config),
@@ -116,6 +126,7 @@ def _estimate_one(
         maxiter=int(cfg.get("optimizer_maxiter", 1500)),
         seed=int(cfg.get("random_seed", 852)),
         compute_standard_errors=standard_errors,
+        observation_noise_model=observation_model,
     )
 
 
@@ -152,11 +163,15 @@ def _rolling_estimates(panel: pd.DataFrame, config: dict[str, Any]) -> pd.DataFr
                 starts=int(cfg.get("rolling_two_factor_starts", 4)),
                 standard_errors=False,
             )
+            two_values = asdict(two.params)
+            two_sigma = two_values.pop("sigma_epsilon")
+            two_values[noise_parameter_name(two.observation_noise_model)] = two_sigma
             rows.append(
                 {
                     **common,
                     "model": "two_factor_ou",
-                    **asdict(two.params),
+                    "observation_noise_model": two.observation_noise_model,
+                    **two_values,
                     "slow_half_life_sessions": 244 * np.log(2) / two.params.kappa_slow,
                     "fast_half_life_sessions": 244 * np.log(2) / two.params.kappa_fast,
                     "log_likelihood": two.log_likelihood,
@@ -180,14 +195,15 @@ def _rolling_estimates(panel: pd.DataFrame, config: dict[str, Any]) -> pd.DataFr
                 starts=int(cfg.get("rolling_one_factor_starts", 2)),
                 standard_errors=False,
             )
+            one_values = asdict(one.params)
+            one_sigma = one_values.pop("sigma_epsilon")
+            one_values[noise_parameter_name(one.observation_noise_model)] = one_sigma
             rows.append(
                 {
                     **common,
                     "model": "one_factor_ou",
-                    "kappa": one.params.kappa,
-                    "theta": one.params.theta,
-                    "eta": one.params.eta,
-                    "sigma_epsilon": one.params.sigma_epsilon,
+                    "observation_noise_model": one.observation_noise_model,
+                    **one_values,
                     "half_life_sessions": 244 * np.log(2) / one.params.kappa,
                     "log_likelihood": one.log_likelihood,
                     "converged": one.converged,
@@ -249,20 +265,43 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
     _write_csv(download_log, output_dir / "download_log.csv")
 
     training, training_label = select_main_training_panel(panel, config)
+    observation_model = normalize_observation_noise_model(
+        config["estimation"].get("observation_noise_model", "constant_carry")
+    )
     compute_se = bool(config["estimation"].get("compute_standard_errors", True))
     two_estimate = _estimate_two(training, config, standard_errors=compute_se)
     one_estimate = _estimate_one(training, config, standard_errors=compute_se)
     gap = gap_function(config)
-    two_filter = two_factor_kalman_filter(panel, two_estimate.params, gap_function=gap)
-    one_filter = kalman_filter(panel, one_estimate.params, gap_function=gap)
+    two_filter = two_factor_kalman_filter(
+        panel,
+        two_estimate.params,
+        gap_function=gap,
+        observation_noise_model=observation_model,
+    )
+    one_filter = kalman_filter(
+        panel,
+        one_estimate.params,
+        gap_function=gap,
+        observation_noise_model=observation_model,
+    )
     nearest_sessions = panel.groupby("date")["sessions_to_expiry"].min().rename("nearest_contract_sessions")
     two_filter.states = two_filter.states.merge(nearest_sessions, on="date", how="left", validate="one_to_one")
     two_filter.states["weak_instantaneous_observability"] = (
         (two_filter.states["nearest_contract_sessions"] > 21)
         | (two_filter.states["filtered_instantaneous_std"] > 0.04)
     )
-    two_fits = attach_two_factor_fits(panel, two_filter.states, two_estimate.params)
-    one_fits = attach_model_fits(panel, one_filter.states, one_estimate.params)
+    two_fits = attach_two_factor_fits(
+        panel,
+        two_filter.states,
+        two_estimate.params,
+        observation_model,
+    )
+    one_fits = attach_model_fits(
+        panel,
+        one_filter.states,
+        one_estimate.params,
+        observation_model,
+    )
 
     two_parameters = two_factor_parameter_table(two_estimate)
     one_parameters = parameter_table(one_estimate)
@@ -305,6 +344,7 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
         "implied_carry", "predicted_carry", "fitted_carry", "carry_prediction_error", "carry_residual",
         "predicted_futures_price", "fitted_futures_price", "futures_prediction_error", "futures_residual",
         "standardized_marginal_prediction_error",
+        "observation_noise_model", "observation_noise_carry_sd",
     ]
     _write_csv(two_fits[residual_columns], output_dir / "two_factor_residuals.csv")
     _write_csv(one_fits[residual_columns], output_dir / "one_factor_residuals.csv")
@@ -314,8 +354,8 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
     one_aic, one_bic = _information_criteria(one_estimate.log_likelihood, 4, n_observations)
     model_comparison = pd.DataFrame(
         [
-            {"model": "two_factor_ou", "parameters": 6, "log_likelihood": two_estimate.log_likelihood, "aic": two_aic, "bic": two_bic},
-            {"model": "one_factor_ou", "parameters": 4, "log_likelihood": one_estimate.log_likelihood, "aic": one_aic, "bic": one_bic},
+            {"model": "two_factor_ou", "observation_noise_model": observation_model, "parameters": 6, "log_likelihood": two_estimate.log_likelihood, "aic": two_aic, "bic": two_bic},
+            {"model": "one_factor_ou", "observation_noise_model": observation_model, "parameters": 4, "log_likelihood": one_estimate.log_likelihood, "aic": one_aic, "bic": one_bic},
         ]
     )
     _write_csv(model_comparison, output_dir / "model_information_criteria.csv")
@@ -334,10 +374,30 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
         starts=int(config["diagnostics"].get("evaluation_one_factor_starts", 4)),
         standard_errors=False,
     )
-    eval_two_filter = two_factor_kalman_filter(panel, eval_two.params, gap_function=gap)
-    eval_one_filter = kalman_filter(panel, eval_one.params, gap_function=gap)
-    eval_two_fits = attach_two_factor_fits(panel, eval_two_filter.states, eval_two.params)
-    eval_one_fits = attach_model_fits(panel, eval_one_filter.states, eval_one.params)
+    eval_two_filter = two_factor_kalman_filter(
+        panel,
+        eval_two.params,
+        gap_function=gap,
+        observation_noise_model=observation_model,
+    )
+    eval_one_filter = kalman_filter(
+        panel,
+        eval_one.params,
+        gap_function=gap,
+        observation_noise_model=observation_model,
+    )
+    eval_two_fits = attach_two_factor_fits(
+        panel,
+        eval_two_filter.states,
+        eval_two.params,
+        observation_model,
+    )
+    eval_one_fits = attach_model_fits(
+        panel,
+        eval_one_filter.states,
+        eval_one.params,
+        observation_model,
+    )
     _write_csv(two_factor_parameter_table(eval_two), output_dir / "evaluation_two_factor_train_parameters.csv")
     _write_csv(parameter_table(eval_one), output_dir / "evaluation_one_factor_train_parameters.csv")
 
@@ -350,6 +410,7 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
         ],
         ignore_index=True,
     )
+    metrics["observation_noise_model"] = observation_model
     _write_csv(metrics, output_dir / "calibration_metrics.csv")
     _write_csv(benchmark_panel, output_dir / "benchmark_fits.csv")
 
@@ -455,6 +516,12 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
         if observed_humps.any()
         else np.nan
     )
+    two_parameter_values = asdict(two_estimate.params)
+    two_sigma = two_parameter_values.pop("sigma_epsilon")
+    two_parameter_values[noise_parameter_name(observation_model)] = two_sigma
+    two_standard_errors = dict(two_estimate.standard_errors)
+    two_sigma_se = two_standard_errors.pop("sigma_epsilon")
+    two_standard_errors[noise_parameter_name(observation_model)] = two_sigma_se
     summary = {
         "data_start": str(pd.Timestamp(panel["date"].min()).date()),
         "data_end": str(latest.date()),
@@ -462,8 +529,9 @@ def run_pipeline(config: dict[str, Any]) -> dict[str, Any]:
         "accepted_curve_dates": int(panel["date"].nunique()),
         "excluded_observations": int(quality_audit["excluded"].sum()),
         "training_scheme": training_label,
-        "two_factor_parameters": asdict(two_estimate.params),
-        "two_factor_standard_errors": two_estimate.standard_errors,
+        "observation_noise_model": observation_model,
+        "two_factor_parameters": two_parameter_values,
+        "two_factor_standard_errors": two_standard_errors,
         "two_factor_hessian_stable": two_estimate.hessian_stable,
         "two_factor_log_likelihood": two_estimate.log_likelihood,
         "one_factor_log_likelihood": one_estimate.log_likelihood,

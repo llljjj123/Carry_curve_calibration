@@ -27,6 +27,12 @@ The demo reuses the validated numerical engines in sibling folders
 now accepts a backward-compatible configurable `eta_fast_upper_bound`; its
 default remains `3.0`, while this demo uses `6.0`.
 
+Calibration observation noise is also configurable. `constant_carry` preserves
+the historical Demo result. `constant_log_futures` filters
+`log(F/S) - r*tau` with one constant log-price noise standard deviation, which
+is equivalent to carry noise proportional to `1/tau`. The pricing engine is
+unchanged; it receives the resulting OU parameters and filtered states.
+
 ## Run
 
 From this directory:
@@ -41,7 +47,11 @@ For example, to use exactly 250 trading dates ending on 2026-08-10:
 & 'D:\miniforge3\envs\spyder-env\python.exe' -B demo_workflow.py `
   --valuation-date 2026-08-10 `
   --sample-size 250 `
-  --futures-contract IM2612
+  --futures-contract IM2612 `
+  --observation-noise-model constant_log_futures `
+  --kappa-gap-upper-bound 120 `
+  --eta-fast-upper-bound 6 `
+  --output-dir outputs_log_futures
 ```
 
 The sample size includes the valuation date. Thus `--sample-size 250` selects
@@ -55,7 +65,15 @@ The notebook exposes the same inputs in its first code cell:
 VALUATION_DATE = "2026-08-21"
 SAMPLE_SIZE = 244
 FUTURES_CONTRACT = "IM2612"
+OBSERVATION_NOISE_MODEL = "constant_log_futures"
+KAPPA_GAP_UPPER_BOUND = 120.0
+ETA_FAST_UPPER_BOUND = 6.0
+OUTPUT_DIR = DEMO_ROOT / "outputs_log_futures"
 ```
+
+The notebook selects `outputs/` for the baseline and `outputs_log_futures/`
+for the candidate automatically, so changing the observation model does not
+overwrite the historical snapshot.
 
 ## Calendar coverage
 
@@ -82,6 +100,7 @@ spot/carry shock correlation, spot homogeneity removes spot volatility from
 this particular option value; the requested historical volatility is still
 estimated, reported, and passed through the pricing interface.
 
-The cap-6 calibration produces an interior fast-volatility estimate, but the
-fast-minus-slow mean-reversion gap reaches its existing upper bound of `60`.
-This second boundary is retained and reported as a model-risk diagnostic.
+The historical constant-carry snapshot reaches the gap bound in the 488-date
+sample. The validated constant-log-futures candidate materially reduces and
+stabilizes that gap, but the Demo still reports both configured bounds and any
+boundary hits explicitly.

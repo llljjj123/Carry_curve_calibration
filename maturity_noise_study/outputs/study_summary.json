@@ -1,0 +1,28 @@
+{
+  "created_at": "2026-09-04T14:53:29.757935+08:00",
+  "settings": {
+    "evaluation_date": "2026-08-21",
+    "sample_dates": 991,
+    "test_fraction": 0.2,
+    "contract": "IM2612",
+    "kappa_gap_upper_bound": 120.0,
+    "eta_fast_upper_bound": 6.0,
+    "optimizer_starts": 12,
+    "optimizer_maxiter": 1500,
+    "random_seed": 852,
+    "price_options": true,
+    "resume": true
+  },
+  "sample_start": "2022-07-22",
+  "sample_end": "2026-08-21",
+  "split_date": "2025-10-29",
+  "training_dates": 792,
+  "training_observations": 2931,
+  "test_dates": 199,
+  "test_observations": 736,
+  "best_oos_carry_rmse_model": "two_bucket_carry",
+  "best_oos_futures_rmse_model": "smooth_carry_log",
+  "best_oos_log_score_model": "constant_log_futures",
+  "best_full_sample_bic_model": "constant_log_futures",
+  "likelihood_comparison_note": "The direct log-futures likelihood includes the exact sum(log(tau)) Jacobian adjustment and is therefore expressed in carry-observation units."
+}

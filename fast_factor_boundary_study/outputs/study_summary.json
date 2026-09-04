@@ -1,0 +1,68 @@
+{
+  "created_at": "2026-09-04T11:55:53.148133+08:00",
+  "settings": {
+    "evaluation_date": "2026-08-21",
+    "contract": "IM2612",
+    "reference_window": 488,
+    "windows": [
+      244,
+      488,
+      732,
+      991
+    ],
+    "gap_caps": [
+      60.0,
+      90.0,
+      120.0,
+      180.0
+    ],
+    "short_end_cutoffs": [
+      5,
+      10,
+      15,
+      20
+    ],
+    "profile_gaps": [
+      20.0,
+      40.0,
+      50.0,
+      55.0,
+      60.0,
+      65.0,
+      70.0,
+      75.0,
+      80.0,
+      85.0,
+      90.0,
+      95.0,
+      100.0,
+      120.0,
+      150.0,
+      180.0,
+      240.0
+    ],
+    "eta_fast_upper_bound": 6.0,
+    "optimizer_starts": 12,
+    "profile_starts": 4,
+    "optimizer_maxiter": 1500,
+    "random_seed": 852,
+    "with_oos": false,
+    "price_options": true,
+    "resume": true
+  },
+  "unique_free_gap_scenarios": 10,
+  "profile_points": 17,
+  "findings": {
+    "all_cap_solutions_on_boundary": false,
+    "largest_cap_estimated_gap": 69.67975877283038,
+    "log_likelihood_gain_from_smallest_to_largest_cap": 1.3011819822750113,
+    "profile_best_fixed_gap": 70.0,
+    "profile_95pct_supported_min": 60.0,
+    "profile_95pct_supported_max": 90.0,
+    "cap_option_price_min": 67.75583324731706,
+    "cap_option_price_max": 69.82475504237948,
+    "profile_option_price_min": 46.43519351540749,
+    "profile_option_price_max": 96.01153934451219
+  },
+  "metric_note": "recursive_prior_* errors are one-step-prior errors conditional on parameters estimated from the full scenario sample; oos_* metrics, when requested, use parameters estimated on the first 80% of dates."
+}

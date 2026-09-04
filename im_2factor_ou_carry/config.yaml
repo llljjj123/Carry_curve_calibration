@@ -28,6 +28,9 @@ quality:
 
 estimation:
   mode: full                 # full, rolling, or split
+  # constant_carry preserves the historical production result.
+  # Set constant_log_futures to use the validated maturity-dependent noise model.
+  observation_noise_model: constant_carry
   rolling_window_dates: 488
   train_end_date: null
   test_fraction: 0.20
@@ -36,6 +39,8 @@ estimation:
   one_factor_optimizer_starts: 5
   compute_standard_errors: true
   random_seed: 852
+  kappa_gap_upper_bound: 60.0
+  eta_fast_upper_bound: 3.0
 
 diagnostics:
   evaluation_test_fraction: 0.20

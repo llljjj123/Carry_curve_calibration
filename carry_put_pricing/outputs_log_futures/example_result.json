@@ -1,0 +1,90 @@
+{
+  "example": {
+    "valuation_date": "2026-08-21",
+    "contract": "IM2609",
+    "expiry": "2026-09-18",
+    "source_directory": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_2factor_ou_carry\\outputs_log_futures"
+  },
+  "contract": {
+    "initial_spot": 7601.804,
+    "initial_futures": 7527.0,
+    "sessions_to_expiry": 20,
+    "periods_per_year": 244
+  },
+  "ou_parameters": {
+    "kappa_slow": 0.341279830878356,
+    "kappa_fast": 16.733586460116513,
+    "theta": 0.0344196222219296,
+    "eta_slow": 0.0469127725867394,
+    "eta_fast": 1.2402544263355926
+  },
+  "initial_state": {
+    "slow": 0.097646500745542,
+    "fast": 0.0248148394503017
+  },
+  "gbm_parameters": {
+    "risk_free_rate": 0.014,
+    "volatility": 0.25
+  },
+  "risk_neutral_assumption": "Historically calibrated OU dynamics are used as risk-neutral dynamics for this prototype.",
+  "base_numerical_configuration": {
+    "slow_grid_points": 301,
+    "fast_grid_points": 401,
+    "stationary_stddev_width": 6.0,
+    "quadrature_order": 43,
+    "minimum_half_width": 0.01,
+    "exercise_tolerance": 1e-12
+  },
+  "numerical_diagnostics": {
+    "absolute_base_minus_fine_grid_price": 0.009113983758098243,
+    "quadrature_price_range_orders_39_to_47": 0.017311071554789947
+  },
+  "result": {
+    "price": 29.660941748769815,
+    "normalized_price": 0.0039018293221937603,
+    "continuation_value": 29.660941748769815,
+    "inception_exercise_value": 0.0,
+    "locked_carry": 0.13464618422090385,
+    "model_initial_carry": 0.1435179934525201,
+    "model_initial_futures": 7521.528374300413,
+    "observed_initial_futures": 7527.0,
+    "initial_futures_model_error": -5.4716256995870935,
+    "maturity": 0.08196721311475409,
+    "exercise_steps": 20,
+    "slow_grid_min": -0.34069992816882055,
+    "slow_grid_max": 0.34069992816882055,
+    "fast_grid_min": -1.2863303666049906,
+    "fast_grid_max": 1.2863303666049906,
+    "spot_volatility_input": 0.25,
+    "spot_volatility_affects_price": false,
+    "fixed_carry_scale_delta": 0.003943472692347401,
+    "slow_curve_delta": {
+      "factor": "slow",
+      "pathwise_delta": -0.4373481995751001,
+      "bump_and_value_delta": -0.4372558419168735,
+      "absolute_method_difference": 9.235765822662723e-05,
+      "pathwise_option_factor_sensitivity": 265.8969444832206,
+      "model_futures_factor_sensitivity": -607.9753952149551,
+      "bump_down_factor_state": 0.0953751678910832,
+      "bump_up_factor_state": 0.0999178336000008,
+      "bump_down_option_value": 29.062607703686727,
+      "bump_up_option_value": 30.27023356622435,
+      "bump_down_model_futures": 7522.909415562476,
+      "bump_up_model_futures": 7520.147586567251
+    },
+    "fast_curve_delta": {
+      "factor": "fast",
+      "pathwise_delta": -0.35164739286572044,
+      "bump_and_value_delta": -0.351135205653867,
+      "absolute_method_difference": 0.000512187211853421,
+      "pathwise_option_factor_sensitivity": 117.96096011586597,
+      "model_futures_factor_sensitivity": -335.45239495323193,
+      "bump_down_factor_state": 0.018383187617276735,
+      "bump_up_factor_state": 0.031246491283326665,
+      "bump_down_option_value": 28.916517080142246,
+      "bump_up_option_value": 30.431674650482183,
+      "bump_down_model_futures": 7523.686196776835,
+      "bump_up_model_futures": 7519.371170695874
+    }
+  }
+}

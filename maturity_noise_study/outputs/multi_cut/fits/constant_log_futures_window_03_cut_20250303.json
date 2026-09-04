@@ -1,0 +1,26 @@
+{
+  "model": "constant_log_futures",
+  "stage": "window_03_cut_20250303",
+  "sample_start": "2022-07-22",
+  "sample_end": "2025-03-03",
+  "sample_dates": 631,
+  "sample_observations": 2335,
+  "kappa_gap_upper_bound": 120.0,
+  "eta_fast_upper_bound": 6.0,
+  "optimizer_starts": 12,
+  "optimizer_maxiter": 1500,
+  "random_seed": 852,
+  "parameters": {
+    "model": "constant_log_futures",
+    "kappa_slow": 0.5108467856939158,
+    "kappa_fast": 16.97949307486499,
+    "theta": 0.04393380448328856,
+    "eta_slow": 0.04700598938318493,
+    "eta_fast": 1.2994802027059187,
+    "sigma_log_futures": 0.000940853559327147
+  },
+  "comparison_log_likelihood": 7458.568823480471,
+  "converged": true,
+  "message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+  "elapsed_seconds": 168.87062260000675
+}

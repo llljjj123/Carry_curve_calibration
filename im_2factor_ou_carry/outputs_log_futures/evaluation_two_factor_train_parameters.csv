@@ -1,0 +1,7 @@
+﻿parameter,estimate,standard_error,observation_noise_model,native_observation_units,log_likelihood,optimizer_converged,optimizer_message,hessian_stable,slow_half_life_sessions,fast_half_life_sessions
+kappa_slow,0.42734808275402136,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316
+kappa_fast,16.37290817812989,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316
+theta,0.040476060373773236,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316
+eta_slow,0.04662264764505982,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316
+eta_fast,1.246102721967629,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316
+sigma_log_futures,0.0009818230605137398,,constant_log_futures,log_futures_price,9296.023525786017,True,CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH,False,395.76148550074464,10.329741681599316

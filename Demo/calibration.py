@@ -25,6 +25,11 @@ if str(CALIBRATION_SRC) not in sys.path:
     sys.path.insert(0, str(CALIBRATION_SRC))
 
 from im_2factor_ou_carry.data import normalized_market_panel  # noqa: E402
+from im_2factor_ou_carry.observation import (  # noqa: E402
+    ObservationNoiseModel,
+    noise_parameter_name,
+    normalize_observation_noise_model,
+)
 from im_2factor_ou_carry.two_factor import (  # noqa: E402
     TwoFactorFilterResult,
     two_factor_kalman_filter,
@@ -51,6 +56,7 @@ RISK_FREE_RATE = 0.014
 CONTRACT_CODE = "IM2609"
 FAST_ETA_UPPER_BOUND = 6.0
 KAPPA_GAP_UPPER_BOUND = 60.0
+OBSERVATION_NOISE_MODEL: ObservationNoiseModel = "constant_carry"
 
 
 @dataclass
@@ -160,9 +166,14 @@ def calibrate_two_factor(
     compute_standard_errors: bool = True,
     random_seed: int = 852,
     eta_fast_upper_bound: float = FAST_ETA_UPPER_BOUND,
+    kappa_gap_upper_bound: float = KAPPA_GAP_UPPER_BOUND,
+    observation_noise_model: ObservationNoiseModel = OBSERVATION_NOISE_MODEL,
     contract_code: str = CONTRACT_CODE,
 ) -> CalibrationResult:
     """Calibrate the independent slow/fast OU model and filter current states."""
+    observation_noise_model = normalize_observation_noise_model(
+        observation_noise_model
+    )
     sample, audit, spot_history = load_calibration_sample(evaluation_date, window_dates)
     estimate = estimate_two_factor_ou(
         sample,
@@ -172,13 +183,21 @@ def calibrate_two_factor(
         seed=random_seed,
         compute_standard_errors=compute_standard_errors,
         eta_fast_upper_bound=eta_fast_upper_bound,
+        kappa_gap_upper_bound=kappa_gap_upper_bound,
+        observation_noise_model=observation_noise_model,
     )
     filtered = two_factor_kalman_filter(
         sample,
         estimate.params,
         gap_function=_gap_function,
+        observation_noise_model=observation_noise_model,
     )
-    fitted = attach_two_factor_fits(sample, filtered.states, estimate.params)
+    fitted = attach_two_factor_fits(
+        sample,
+        filtered.states,
+        estimate.params,
+        observation_noise_model,
+    )
     parameters = two_factor_parameter_table(estimate)
     historical_volatility = estimate_historical_volatility(spot_history)
 
@@ -219,8 +238,15 @@ def calibrate_two_factor(
         "distinct_contracts": int(sample["contract"].nunique()),
         "return_observations": int(spot_history["log_return"].notna().sum()),
         "historical_volatility": historical_volatility,
+        "observation_noise_model": observation_noise_model,
+        "observation_noise_parameter": noise_parameter_name(
+            observation_noise_model
+        ),
+        "observation_noise_parameter_value": float(
+            estimate.params.sigma_epsilon
+        ),
         "eta_fast_upper_bound": float(eta_fast_upper_bound),
-        "kappa_fast_minus_slow_upper_bound": KAPPA_GAP_UPPER_BOUND,
+        "kappa_fast_minus_slow_upper_bound": float(kappa_gap_upper_bound),
         "log_likelihood": float(estimate.log_likelihood),
         "aic": float(2 * parameter_count - 2 * estimate.log_likelihood),
         "bic": float(parameter_count * np.log(n_observations) - 2 * estimate.log_likelihood),
@@ -234,7 +260,7 @@ def calibrate_two_factor(
         ),
         "kappa_fast_minus_slow_at_upper_bound": bool(
             estimate.params.kappa_fast - estimate.params.kappa_slow
-            >= KAPPA_GAP_UPPER_BOUND - 1.0e-8
+            >= kappa_gap_upper_bound - 1.0e-8
         ),
         "hessian_stable": bool(estimate.hessian_stable),
         "latest_filtered_slow_state": float(latest_state["filtered_slow_state"]),
@@ -278,4 +304,12 @@ def export_calibration(result: CalibrationResult, output_dir: Path) -> None:
 
 def parameter_estimates(result: CalibrationResult) -> dict[str, float]:
     """Return calibrated parameters as an ordinary dictionary."""
-    return {key: float(value) for key, value in asdict(result.estimate.params).items()}
+    values = {
+        key: float(value)
+        for key, value in asdict(result.estimate.params).items()
+        if key != "sigma_epsilon"
+    }
+    values[noise_parameter_name(result.estimate.observation_noise_model)] = float(
+        result.estimate.params.sigma_epsilon
+    )
+    return values

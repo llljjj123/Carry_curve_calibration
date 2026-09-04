@@ -1,0 +1,54 @@
+project:
+  raw_dir: data/raw
+  output_dir: outputs_log_futures
+  chart_dir: outputs_log_futures/charts
+
+data:
+  index_symbol: sh000852
+  futures_prefix: IM
+  start_date: "2022-07-22"
+  end_date: null
+  risk_free_rate: 0.014
+  futures_price_field: close
+  expiry_override_path: null
+  refresh: false
+  request_retries: 2
+
+calendar:
+  periods_per_year: 244
+  min_sessions_to_expiry: 5
+  special_exchange_closures:
+    - "2024-02-09"
+
+quality:
+  max_abs_implied_carry: 0.50
+  stale_run_length: 3
+  exclude_stale: false
+
+estimation:
+  mode: full
+  observation_noise_model: constant_log_futures
+  rolling_window_dates: 488
+  train_end_date: null
+  test_fraction: 0.20
+  optimizer_maxiter: 1500
+  two_factor_optimizer_starts: 12
+  one_factor_optimizer_starts: 5
+  compute_standard_errors: true
+  random_seed: 852
+  kappa_gap_upper_bound: 120.0
+  eta_fast_upper_bound: 6.0
+
+diagnostics:
+  evaluation_test_fraction: 0.20
+  evaluation_two_factor_starts: 6
+  evaluation_one_factor_starts: 4
+  representative_dates: 4
+  worst_dates: 4
+  acf_lags: 20
+  shape_tolerance_bps: 5.0
+  rolling_enabled: true
+  rolling_window_dates: 488
+  rolling_step_dates: 126
+  rolling_two_factor_starts: 4
+  rolling_one_factor_starts: 2

@@ -10,6 +10,11 @@ import numpy as np
 import pandas as pd
 
 from .kalman import maturity_loading
+from .observation import (
+    ObservationNoiseModel,
+    comparison_log_jacobian,
+    normalize_observation_noise_model,
+)
 
 
 @dataclass(frozen=True)
@@ -38,6 +43,7 @@ class CurveGroup:
     date: pd.Timestamp
     tau: np.ndarray
     carry: np.ndarray
+    log_futures_observation: np.ndarray | None
     row_index: np.ndarray
 
 
@@ -46,6 +52,7 @@ class TwoFactorDataset:
     groups: list[CurveGroup]
     deltas: np.ndarray
     n_observations: int
+    observation_noise_model: ObservationNoiseModel = "constant_carry"
 
 
 @dataclass
@@ -53,11 +60,20 @@ class TwoFactorFilterResult:
     log_likelihood: float
     states: pd.DataFrame
     innovations: pd.DataFrame
+    raw_log_likelihood: float | None = None
+    observation_noise_model: ObservationNoiseModel = "constant_carry"
 
 
-def make_dataset(panel: pd.DataFrame, gap_function: Callable[[object, object], float]) -> TwoFactorDataset:
+def make_dataset(
+    panel: pd.DataFrame,
+    gap_function: Callable[[object, object], float],
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
+) -> TwoFactorDataset:
     """Pre-group a ragged panel once so optimizer likelihood calls are fast."""
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
     required = {"date", "tau", "implied_carry"}
+    if observation_noise_model == "constant_log_futures":
+        required.update({"futures_price", "spot", "risk_free_rate"})
     if not required.issubset(panel.columns):
         raise ValueError(f"Panel missing columns: {sorted(required - set(panel.columns))}")
     work = panel.dropna(subset=list(required)).sort_values(["date", "tau"]).copy()
@@ -74,11 +90,26 @@ def make_dataset(panel: pd.DataFrame, gap_function: Callable[[object, object], f
                 date=current,
                 tau=group["tau"].to_numpy(dtype=float),
                 carry=group["implied_carry"].to_numpy(dtype=float),
+                log_futures_observation=(
+                    np.log(
+                        group["futures_price"].to_numpy(dtype=float)
+                        / group["spot"].to_numpy(dtype=float)
+                    )
+                    - group["risk_free_rate"].to_numpy(dtype=float)
+                    * group["tau"].to_numpy(dtype=float)
+                    if observation_noise_model == "constant_log_futures"
+                    else None
+                ),
                 row_index=group.index.to_numpy(),
             )
         )
         previous_date = current
-    return TwoFactorDataset(groups, np.asarray(deltas, dtype=float), len(work))
+    return TwoFactorDataset(
+        groups,
+        np.asarray(deltas, dtype=float),
+        len(work),
+        observation_noise_model,
+    )
 
 
 def stationary_covariance(params: TwoFactorParams) -> np.ndarray:
@@ -111,11 +142,15 @@ def _filter_dataset(
     collect: bool = True,
 ) -> TwoFactorFilterResult:
     params.validate()
+    observation_noise_model = normalize_observation_noise_model(
+        dataset.observation_noise_model
+    )
     mean = np.zeros(2) if initial_mean is None else np.asarray(initial_mean, dtype=float).copy()
     covariance = stationary_covariance(params) if initial_covariance is None else np.asarray(initial_covariance, dtype=float).copy()
     if mean.shape != (2,) or covariance.shape != (2, 2):
         raise ValueError("Two-factor initial state dimensions are invalid")
     observation_variance = params.sigma_epsilon**2
+    raw_log_likelihood = 0.0
     log_likelihood = 0.0
     state_rows: list[dict[str, object]] = []
     innovation_rows: list[dict[str, object]] = []
@@ -129,8 +164,19 @@ def _filter_dataset(
             predicted_mean, predicted_covariance = mean.copy(), covariance.copy()
         slow_loading = maturity_loading(params.kappa_slow, group.tau)
         fast_loading = maturity_loading(params.kappa_fast, group.tau)
-        observation_matrix = np.column_stack([slow_loading, fast_loading])
-        innovation = group.carry - params.theta - observation_matrix @ predicted_mean
+        if observation_noise_model == "constant_carry":
+            observed = group.carry
+            offset = np.full_like(group.tau, params.theta)
+            observation_matrix = np.column_stack([slow_loading, fast_loading])
+        else:
+            if group.log_futures_observation is None:
+                raise ValueError("Log-futures observations are missing from the dataset")
+            observed = group.log_futures_observation
+            offset = -params.theta * group.tau
+            observation_matrix = np.column_stack(
+                [-group.tau * slow_loading, -group.tau * fast_loading]
+            )
+        innovation = observed - offset - observation_matrix @ predicted_mean
         innovation_covariance = (
             observation_matrix @ predicted_covariance @ observation_matrix.T
             + observation_variance * np.eye(len(group.carry))
@@ -138,11 +184,17 @@ def _filter_dataset(
         cholesky = np.linalg.cholesky(innovation_covariance)
         whitened_innovation = np.linalg.solve(cholesky, innovation)
         log_determinant = 2.0 * np.log(np.diag(cholesky)).sum()
-        log_likelihood += -0.5 * (
-            len(group.carry) * log(2.0 * pi)
+        date_raw_log_likelihood = -0.5 * (
+            len(observed) * log(2.0 * pi)
             + log_determinant
             + float(whitened_innovation @ whitened_innovation)
         )
+        date_log_likelihood = date_raw_log_likelihood + comparison_log_jacobian(
+            observation_noise_model,
+            group.tau,
+        )
+        raw_log_likelihood += date_raw_log_likelihood
+        log_likelihood += date_log_likelihood
         solved_innovation = np.linalg.solve(cholesky.T, whitened_innovation)
         solved_observation = np.linalg.solve(
             cholesky.T,
@@ -163,7 +215,17 @@ def _filter_dataset(
                         "within_date_order": position,
                         "innovation": innovation[position],
                         "innovation_variance": innovation_covariance[position, position],
+                        "innovation_model_units": innovation[position],
+                        "innovation_variance_model_units": innovation_covariance[
+                            position, position
+                        ],
+                        "carry_innovation": (
+                            innovation[position]
+                            if observation_noise_model == "constant_carry"
+                            else -innovation[position] / group.tau[position]
+                        ),
                         "standardized_innovation": whitened_innovation[position],
+                        "observation_noise_model": observation_noise_model,
                     }
                 )
         if collect:
@@ -188,10 +250,17 @@ def _filter_dataset(
                     "filtered_instantaneous_std": np.sqrt(max(covariance.sum(), 0.0)),
                 }
             )
-    return TwoFactorFilterResult(log_likelihood, pd.DataFrame(state_rows), pd.DataFrame(innovation_rows))
+    return TwoFactorFilterResult(
+        log_likelihood=float(log_likelihood),
+        states=pd.DataFrame(state_rows),
+        innovations=pd.DataFrame(innovation_rows),
+        raw_log_likelihood=float(raw_log_likelihood),
+        observation_noise_model=observation_noise_model,
+    )
 
 
 def two_factor_log_likelihood(dataset: TwoFactorDataset, params: TwoFactorParams) -> float:
+    """Comparable likelihood expressed relative to annualized-carry observations."""
     return _filter_dataset(dataset, params, collect=False).log_likelihood
 
 
@@ -202,8 +271,9 @@ def two_factor_kalman_filter(
     gap_function: Callable[[object, object], float],
     initial_mean: np.ndarray | None = None,
     initial_covariance: np.ndarray | None = None,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
 ) -> TwoFactorFilterResult:
-    dataset = make_dataset(panel, gap_function)
+    dataset = make_dataset(panel, gap_function, observation_noise_model)
     return _filter_dataset(
         dataset,
         params,

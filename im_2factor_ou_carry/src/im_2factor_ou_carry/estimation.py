@@ -10,6 +10,12 @@ import pandas as pd
 from scipy.optimize import minimize
 
 from .kalman import OUParams, kalman_filter
+from .observation import (
+    ObservationNoiseModel,
+    native_noise_units,
+    noise_parameter_name,
+    normalize_observation_noise_model,
+)
 
 
 @dataclass
@@ -22,6 +28,7 @@ class EstimationResult:
     standard_errors: dict[str, float]
     hessian_stable: bool
     optimizer_runs: pd.DataFrame
+    observation_noise_model: ObservationNoiseModel = "constant_carry"
 
 
 def pack(params: OUParams) -> np.ndarray:
@@ -32,8 +39,14 @@ def unpack(values: np.ndarray) -> OUParams:
     return OUParams(float(np.exp(values[0])), float(values[1]), float(np.exp(values[2])), float(np.exp(values[3])))
 
 
-def initial_guesses(panel: pd.DataFrame, count: int, seed: int = 852) -> list[OUParams]:
+def initial_guesses(
+    panel: pd.DataFrame,
+    count: int,
+    seed: int = 852,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
+) -> list[OUParams]:
     """Construct deterministic, data-scaled starts plus seeded perturbations."""
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
     carries = panel["implied_carry"].dropna().to_numpy(dtype=float)
     theta = float(np.clip(np.median(carries), -0.25, 0.25))
     grouped = panel.groupby("date")["implied_carry"].mean().sort_index()
@@ -41,6 +54,8 @@ def initial_guesses(panel: pd.DataFrame, count: int, seed: int = 852) -> list[OU
     eta = float(np.clip((daily_diff if np.isfinite(daily_diff) else 0.005) * np.sqrt(244), 0.01, 0.30))
     cross = panel.assign(_mean=panel.groupby("date")["implied_carry"].transform("mean"))
     sigma = float(np.clip((cross["implied_carry"] - cross["_mean"]).std(), 0.001, 0.10))
+    if observation_noise_model == "constant_log_futures":
+        sigma = float(np.clip(sigma * panel["tau"].median(), 1e-6, 0.02))
     kappas = [0.25, 0.75, 1.5, 3.0, 6.0, 12.0]
     starts = [OUParams(k, theta, eta, sigma) for k in kappas[: max(1, min(count, len(kappas)))]]
     rng = np.random.default_rng(seed)
@@ -88,25 +103,39 @@ def estimate_ou(
     maxiter: int = 1200,
     seed: int = 852,
     compute_standard_errors: bool = True,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
 ) -> EstimationResult:
     """Estimate OU parameters using bounded log-parameterization and multi-starts."""
+    observation_noise_model = normalize_observation_noise_model(observation_noise_model)
+    noise_bound = (
+        (np.log(1e-5), np.log(0.50))
+        if observation_noise_model == "constant_carry"
+        else (np.log(1e-8), np.log(0.05))
+    )
     bounds = [
         (np.log(0.01), np.log(50.0)),
         (-0.50, 0.50),
         (np.log(1e-4), np.log(1.0)),
-        (np.log(1e-5), np.log(0.50)),
+        noise_bound,
     ]
 
     def objective(x: np.ndarray) -> float:
         try:
-            value = -kalman_filter(panel, unpack(x), gap_function=gap_function).log_likelihood
+            value = -kalman_filter(
+                panel,
+                unpack(x),
+                gap_function=gap_function,
+                observation_noise_model=observation_noise_model,
+            ).log_likelihood
             return value if np.isfinite(value) else 1e100
         except (ValueError, FloatingPointError, OverflowError):
             return 1e100
 
     results = []
     audit: list[dict[str, object]] = []
-    for index, guess in enumerate(initial_guesses(panel, starts, seed)):
+    for index, guess in enumerate(
+        initial_guesses(panel, starts, seed, observation_noise_model)
+    ):
         result = minimize(
             objective,
             pack(guess),
@@ -119,6 +148,8 @@ def estimate_ou(
         audit.append(
             {
                 "start_id": index,
+                "observation_noise_model": observation_noise_model,
+                "noise_parameter_name": noise_parameter_name(observation_noise_model),
                 **{f"start_{k}": v for k, v in asdict(guess).items()},
                 **{f"estimate_{k}": v for k, v in asdict(fitted).items()},
                 "log_likelihood": -float(result.fun),
@@ -151,6 +182,7 @@ def estimate_ou(
             stable = False
     return EstimationResult(
         params=params,
+        observation_noise_model=observation_noise_model,
         log_likelihood=-float(best.fun),
         converged=bool(best.success),
         message=str(best.message),
@@ -163,12 +195,26 @@ def estimate_ou(
 
 def parameter_table(result: EstimationResult) -> pd.DataFrame:
     values = asdict(result.params)
+    sigma = values.pop("sigma_epsilon")
+    sigma_se = result.standard_errors["sigma_epsilon"]
+    parameter_name = noise_parameter_name(result.observation_noise_model)
+    values[parameter_name] = sigma
+    standard_errors = {
+        key: result.standard_errors[key]
+        for key in values
+        if key != parameter_name
+    }
+    standard_errors[parameter_name] = sigma_se
     table = pd.DataFrame(
         {
             "parameter": list(values),
             "estimate": list(values.values()),
-            "standard_error": [result.standard_errors[key] for key in values],
+            "standard_error": [standard_errors[key] for key in values],
         }
+    )
+    table["observation_noise_model"] = result.observation_noise_model
+    table["native_observation_units"] = native_noise_units(
+        result.observation_noise_model
     )
     table["log_likelihood"] = result.log_likelihood
     table["optimizer_converged"] = result.converged

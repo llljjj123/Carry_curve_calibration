@@ -4,7 +4,97 @@
 
 This repository studies the implied-carry term structure of CSI 1000 index futures (CFFEX `IM` contracts), develops one- and two-factor Ornstein–Uhlenbeck (OU) state-space models for that curve, tests whether stock/carry shock correlation is identifiable, and prices an American-style put on the carry curve.
 
-This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the five implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work.
+This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary and maturity-dependent observation-noise studies.
+
+## 2026-09-04 calibration and maturity-noise update
+
+### Conversation and conceptual clarification
+
+- After reviewing this handoff and the root README, the user agreed that the first priority was diagnosing why `kappa_fast-kappa_slow` reached its upper bound in the recent 488-date Demo calibration.
+- The difference between posterior in-sample residuals and genuine out-of-sample errors was clarified. In calibration, the optimizer repeatedly proposes global OU/noise parameters and the Kalman filter integrates over the daily latent states to return the summed one-step predictive log likelihood. In the chronological holdout, the estimated parameters are frozen; the state is still predicted and updated daily, but each day's errors and predictive likelihood are recorded before that day's observations update the state.
+- `Calibration_explained.md` was created as a review note covering the state-space equations, Kalman prediction/update recursion, likelihood construction, optimizer interaction, parameter constraints, multi-start estimation, and chronological OOS testing. At the user's request, all display mathematics was changed to balanced `$$` delimiters so it renders in VS Code.
+
+### Fast-factor boundary study
+
+- A self-contained `fast_factor_boundary_study` folder was created and run in `D:\miniforge3\envs\spyder-env\python.exe`. It reuses the strict Demo calendar, cached data, validated two-factor likelihood, and pricing engine without changing production code or the Demo.
+- For the 488-date sample, the original gap cap of 60 is restrictive. Raising it gives an interior optimum at a gap of about 69.68; caps of 90, 120, and 180 give the same optimum. Relative to cap 60, log likelihood improves only about 1.30 and the IM2612 option value falls about 2.07 points.
+- The fixed-gap likelihood peaks near 70. The interpolated 95% likelihood-ratio region is approximately 58.8-92.1. This shows that the cap-60 solution was constrained, but the likelihood does not improve indefinitely as the cap is raised.
+- The fast timescale is sample dependent: estimated gaps are about 68.23, 69.68, 42.56, and 42.90 for 244-, 488-, 732-, and 991-date windows. The associated option prices range from 61.51 to 83.08 points, much wider than the roughly two-point cap effect.
+- Short-end exclusion is not a satisfactory fix. Excluding through 10 sessions produces a weakly multimodal boundary solution, while excluding through 15 or 20 sessions abruptly lowers the estimated gap to about 16.83 or 15.26. Contracts around 11-15 sessions contain substantial fast-factor information; deleting them changes the economic model rather than simply removing harmless outliers.
+- The study therefore recommended keeping all accepted observations, using a diagnostic gap cap of 120, and testing maturity-dependent observation noise next. Detailed results are in `fast_factor_boundary_study/RESULTS.md`.
+
+### Maturity-dependent observation-noise study
+
+A second isolated folder, `maturity_noise_study`, compares four specifications:
+
+1. constant annualized-carry noise, the current baseline;
+2. two carry-noise buckets, with separate standard deviations at `sessions <= 15` and `sessions > 15`;
+3. smooth carry plus log-price noise,
+
+   $$
+   \sigma_q(\tau)=\sqrt{\sigma_{floor}^2+
+   \left(\frac{\sigma_{logF}}{\tau}\right)^2};
+   $$
+
+4. direct filtering of `log(F/S)-r*tau` with constant log-futures noise, equivalent in carry units to
+
+   $$
+   \sigma_q(\tau)=\frac{\sigma_{logF}}{\tau}.
+   $$
+
+The direct log-futures likelihood adds the exact `sum(log(tau))` change-of-variables Jacobian, so its likelihood, AIC/BIC, and predictive score are comparable with the carry-observation models.
+
+The common chronological design uses the full 991-date panel through 2026-08-21. Training contains 792 dates and 2,931 observations through 2025-10-29; the holdout contains 199 dates and 736 observations. Parameters are frozen in the holdout while the state updates sequentially after each day's predictions are scored. Separate full-sample fits price IM2612. Every model uses 12 L-BFGS-B starts, gap cap 120, and `eta_fast` cap 6.
+
+Out-of-sample aggregate results:
+
+| Model | Carry RMSE (bp) | Carry MAE (bp) | Futures RMSE | Futures MAE | Mean log score |
+|---|---:|---:|---:|---:|---:|
+| Constant carry | 359.891 | 213.856 | 33.354 | 25.135 | 2.890140 |
+| Two buckets | **344.504** | 207.520 | 32.245 | 23.992 | 3.059324 |
+| Smooth carry + log-price | 346.070 | 205.611 | **31.801** | 23.426 | 3.219316 |
+| Constant log-futures | 346.067 | **205.610** | 31.801 | **23.426** | **3.219320** |
+
+Relative to constant carry noise, constant log-futures noise improves carry RMSE by 3.84%, futures RMSE by 4.66%, carry MAE by 3.86%, and futures MAE by 6.80%. The two-bucket carry-RMSE advantage over direct log-futures is only 1.563 bp, or 0.45%, while the direct model is better on futures errors, MAE, predictive density, and parsimony.
+
+Full-sample results:
+
+| Model | Kappa gap | Log likelihood | BIC | IM2612 option price |
+|---|---:|---:|---:|---:|
+| Constant carry | 42.9034 | 10,857.383 | -21,665.524 | 74.679 |
+| Two buckets | 17.7756 | 11,285.011 | -22,512.573 | 86.163 |
+| Smooth carry + log-price | 16.2033 | 11,673.612 | -23,289.775 | 86.764 |
+| Constant log-futures | **16.2033** | **11,673.612** | **-23,297.982** | **86.764** |
+
+The maturity-dependent models reduce the kappa gap by 59%-62% relative to the constant-carry fit. The recommended constant log-futures estimates are `kappa_slow=0.28855`, `kappa_fast=16.49182`, `eta_slow=0.04601`, `eta_fast=1.22572`, and `sigma_log_futures=0.00097159`. This corresponds to approximately constant futures observation noise of 7.29 points at a representative futures level of 7,500, while carry noise scales as `1/tau`.
+
+The smooth model estimates `sigma_carry_floor=8.58e-7`, effectively zero, and is numerically identical to direct log-futures noise. Because direct log-futures uses one fewer parameter, it wins full-sample BIC and is the recommended candidate specification. Observation-noise choice is economically material: the IM2612 optional-component value rises from 74.679 to 86.764 and fast pathwise delta changes from -0.0443 to -0.1475.
+
+All 12 starts in every train/full fit reported convergence; 7-10 starts per fit reproduced the selected likelihood within 0.01. Other starts found clearly inferior local modes, so multi-start optimization remains necessary. Ruff passed and all five focused tests passed in `spyder-env`. Detailed findings are in `maturity_noise_study/RESULTS.md`, with raw comparisons, predictions, fit checkpoints, optimizer audits, and charts under `maturity_noise_study/outputs`.
+
+### Multiple-cut-date follow-up
+
+The agreed robustness test was subsequently completed in `maturity_noise_study/multi_cut_study.py`. It uses five expanding calibrations and five consecutive, non-overlapping 120-date holdouts covering the final 600 curve dates exactly once. The models are constant carry, two buckets, and constant log-futures; each of the 15 fits uses 12 starts.
+
+Across 600 test dates and 2,219 observations, constant log-futures improves pooled carry RMSE by 5.95%, carry MAE by 4.12%, futures RMSE by 5.59%, and futures MAE by 7.25% relative to constant carry. It wins futures RMSE and predictive log score in all five windows, and carry RMSE in three. HAC paired tests show strong gains for carry MAE, both futures losses, and log score; the carry squared-error gain versus constant carry is borderline (`p=0.0505`) and versus two buckets is not decisive (`p=0.1013`).
+
+The constant-log-futures kappa gap ranges only from 14.79 to 18.45, with mean 16.20; `eta_fast` ranges from 1.17 to 1.52. Neither parameter hits a bound. Constant-carry gaps range from 35.62 to 44.23. All starts report convergence, and 7-9 starts per fit reproduce the selected likelihood within 0.01.
+
+Conclusion: the robustness test passes. Constant log-futures noise was advanced to production integration behind a configuration switch. Full interpretation is in `maturity_noise_study/MULTI_CUT_RESULTS.md`; generated evidence is under `maturity_noise_study/outputs/multi_cut`.
+
+### Production integration and downstream comparison
+
+- `im_2factor_ou_carry` now supports `estimation.observation_noise_model` values `constant_carry` and `constant_log_futures` in both its one- and two-factor models. `constant_carry` remains the default in `config.yaml`; `config_log_futures.yaml` is the opt-in candidate and writes to `outputs_log_futures`.
+- Internally, `sigma_epsilon` remains the backward-compatible native-noise field. Parameter tables and summaries expose it as `sigma_log_futures` for the candidate. Carry diagnostics convert it using `sigma_log_futures/tau`, and reported log likelihood adds the exact `sum(log(tau))` Jacobian.
+- The kappa-gap and `eta_fast` bounds are now configurable. The candidate uses caps 120 and 6; the baseline preserves 60 and 3.
+- The full production candidate run passed on 3,667 observations and 991 dates. It estimates `kappa_slow=0.341280`, `kappa_fast=16.733586`, gap `16.392307`, `theta=0.034420`, `eta_slow=0.046913`, `eta_fast=1.240254`, and `sigma_log_futures=0.000974421`. Both boundary issues are absent and the Hessian is stable.
+- On the production 20% evaluation holdout, the candidate improves carry RMSE/MAE by 3.78%/3.76% and futures RMSE/MAE by 4.09%/6.27% relative to the saved constant-carry baseline.
+- Production and research full-sample parameters differ slightly because 25 far-dated 2027 observations use different maturity calendars. The research/Demo path uses the provisional explicit 2027-2028 company calendar; production retains its documented weekday fallback outside `chinese_calendar` coverage. Starting at the research parameters under production maturities converges to the production optimum, so this is not a filter or optimizer discrepancy.
+- `Demo` exposes the observation model and both bounds through Python, CLI, and notebook inputs. The candidate notebook/CLI output is isolated in `Demo/outputs_log_futures`. On the 2026-08-10 / 488-date / IM2612 snapshot, the gap falls from its bound of 60 to 18.848, but the option-only value rises from 63.8575 to 83.0422 (+30.04%). Slow/fast pathwise deltas change from -0.3324/-0.0141 to -0.4167/-0.1123.
+- `carry_put_pricing` mathematics is unchanged. Its example adapter now accepts `--calibration-output-dir` and `--output-dir`. On the 2026-08-21 IM2609 example, the candidate price is 29.6609 versus 36.2794 (-18.24%), while slow/fast pathwise deltas change from -0.4274/-0.2077 to -0.4373/-0.3516.
+- Because downstream prices and hedges move materially and in sample-dependent directions, the recommendation is to keep constant log-futures as an opt-in parallel candidate and retain constant carry as the default until business/risk review accepts the valuation impact and the production 2027 calendar policy is resolved.
+- Detailed implementation results are in `im_2factor_ou_carry/CONSTANT_LOG_FUTURES_INTEGRATION.md`. Candidate outputs are under `im_2factor_ou_carry/outputs_log_futures`, `Demo/outputs_log_futures`, and `carry_put_pricing/outputs_log_futures`.
+- Final validation in `spyder-env`: Ruff passed; production 17 tests, Demo 5 tests, pricing 10 tests, maturity-noise study 8 tests, and boundary study 4 tests all passed. The candidate production workflow, full Demo/profile, and pricing adapter ran end to end. Notebook JSON validation passed; the historical executed notebook outputs remain the constant-carry default snapshot.
 
 ## 2026-09-01 delta update
 
@@ -15,13 +105,15 @@ This handoff was prepared on 2026-08-26 from `session_log.md` and the executable
 - The current 2026-08-10 / 488-date / `IM2612` Demo rerun gives slow deltas `-0.33235550` pathwise and `-0.33238170` bump-and-value, and fast deltas `-0.01406941` pathwise and `-0.01404718` bump-and-value. The notebook executed end to end and regenerated the Demo CSV/JSON/PNG snapshot.
 - The user added a `## Delta部分` section to the root `README.md`. At the user's explicit request, a `### 数值计算方法` subsection was appended without changing the user's prior writing. It documents the derivative conventions, exercise/continuation derivative handling, continuation-side tie convention, exact-model futures conversion, local one-grid-step bump, and directional hedge interpretation.
 
-The five implementation folders are:
+The principal implementation and diagnostic folders are:
 
 1. `im_ou_carry`: baseline one-factor OU calibration and diagnostics.
 2. `im_2factor_ou_carry`: preferred two-factor OU calibration, including a like-for-like one-factor comparison.
 3. `im_corr_ou_1factor`: exact correlated one-factor extension with curve-only and joint curve/return likelihoods.
 4. `carry_put_pricing`: isolated numerical library and fixed example for the American carry-put optional component.
 5. `Demo`: configurable end-to-end calibration and carry-put demonstration that reuses the two-factor and pricing engines.
+6. `fast_factor_boundary_study`: isolated cap, sample-window, short-end, and fixed-gap diagnostics.
+7. `maturity_noise_study`: isolated constant-versus-maturity-dependent observation-noise comparison with strict chronological OOS scoring.
 
 Do not modify or revert the root `README.md` unless the user explicitly asks. It is user-owned writing, including the `## Delta部分` section. Also assume the worktree may already contain user changes, especially in `AGENTS.md`, `README.md`, `Demo/Carry_Put_Demo.ipynb`, and `Demo/outputs`; inspect `git status` before editing anything.
 
@@ -518,6 +610,8 @@ Historical validation recorded in `session_log.md`:
 - correlated one-factor project: 16 passing tests, 21 parsed Python files, 22 nonempty CSVs, 10 charts;
 - carry-put pricer: 10 passing tests after adding the slow/fast futures-equivalent deltas and fixed-carry scale delta; Ruff passed and the fixed example was regenerated on 2026-09-01;
 - Demo: five focused tests plus Ruff historically; the full notebook executed successfully on 2026-09-01 after adding the curve-delta section, and the current generated snapshot was refreshed.
+- fast-factor boundary study: focused tests and Ruff passed; the complete cap/window/short-end/profile run is checkpointed under `fast_factor_boundary_study/outputs`.
+- maturity-noise study: five focused tests and Ruff passed on 2026-09-04; the complete 12-start train/full comparison is checkpointed under `maturity_noise_study/outputs/fits`.
 
 Because code and generated Demo outputs have since changed, rerun the relevant current test suites before claiming a new final validation.
 
@@ -539,7 +633,7 @@ Do not edit generated outputs merely to normalize paths unless the user asks for
 ## Main unresolved modelling issues
 
 1. **Historical versus risk-neutral dynamics.** The pricing prototype uses historically estimated OU parameters as if they were under `Q`. Production pricing requires risk-neutral calibration or explicit carry-factor risk premia.
-2. **Fast-factor identification.** Recent rolling windows and the Demo show boundary pressure in `eta_fast` and/or `kappa_fast-kappa_slow`. Very short-dated option values are especially sensitive.
+2. **Fast-factor identification and observation model.** Five holdouts support constant log-futures noise and its production candidate has an interior kappa gap and `eta_fast`. However, downstream option values and hedges change materially, so the candidate remains opt-in pending business/risk review. Very short-dated option values remain especially sensitive.
 3. **Residual dynamics.** Even two factors leave autocorrelation and volatility clustering; maturity-dependent or time-varying observation noise, stochastic volatility, or regimes may be needed.
 4. **Correlation evidence.** The current one-factor data do not support nonzero stock/carry correlation. Curve-only `rho` is essentially unidentified; joint `rho` includes zero and does not improve forecasts.
 5. **Calendar authority.** Shared code silently falls back to weekdays beyond holiday-package coverage. The Demo is stricter but its 2027–2028 calendar is provisional.
@@ -551,10 +645,11 @@ Do not edit generated outputs merely to normalize paths unless the user asks for
 
 The clean next diagnostics discussed in the session are:
 
-- rerun the identical cap-6 two-factor specification over 244-, 488-, 732-, and 991-date windows using the same strict calendar and optimizer-start policy, then compare mean-reversion-gap pressure and `IM2612` option values;
+- review and approve the material side-by-side option-value and hedge changes before considering any default switch to constant log-futures noise;
+- resolve the production calendar policy for 2027+ maturities so calibration, Demo, and research use an agreed session schedule;
 - build an independent Longstaff–Schwartz benchmark for the deterministic-grid carry-put pricer;
 - perform risk-neutral OU sensitivity scenarios or calibrate carry risk premia;
-- consider maturity-dependent observation noise and/or time-varying volatility;
+- after the observation equation is settled, consider time-varying observation noise, stochastic volatility, or regime structure for the remaining residual dynamics;
 - replace the provisional 2027–2028 company calendar with the official CFFEX schedule when available;
 - if revisiting correlation, test sensitivity to fixed stock volatility and separate historical `(kappa_P, theta_P)` from pricing `(kappa_Q, theta_Q)` rather than interpreting the current curve-only estimate.
 
@@ -571,4 +666,6 @@ The clean next diagnostics discussed in the session are:
 - Distinguish posterior fitted residuals from genuine one-step-prior out-of-sample prediction errors.
 - Distinguish filtered states (live/forecast use) from smoothed states (historical-only use).
 - Treat parameter-bound solutions and flat likelihood profiles as identification/model-risk diagnostics, not automatically as optimizer failures or economic evidence.
+- For maturity-noise comparisons, use the Jacobian-adjusted log-futures likelihood when comparing likelihoods or information criteria with carry-space models, and preserve the predict-before-update OOS convention.
+- Treat `maturity_noise_study/RESULTS.md` and its exact generated CSV/JSON outputs as the source for the 2026-09-04 noise comparison; do not infer that production already uses constant log-futures noise.
 - When reporting a Demo value, state the valuation date, sample size, contract, calendar source, OU parameter set, and whether only the optional component is included.

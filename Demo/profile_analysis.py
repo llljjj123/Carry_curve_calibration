@@ -18,6 +18,11 @@ from im_2factor_ou_carry.two_factor import (
 )
 from im_2factor_ou_carry.two_factor_estimation import initial_guesses
 from im_2factor_ou_carry.two_factor_fitting import attach_two_factor_fits
+from im_2factor_ou_carry.observation import (
+    ObservationNoiseModel,
+    noise_parameter_name,
+    normalize_observation_noise_model,
+)
 
 
 ETA_FAST_PROFILE = (2.0, 3.0, 3.25, 3.5, 3.75, 4.0, 5.0, 6.0, 8.0, 10.0)
@@ -30,6 +35,7 @@ class FixedEtaEstimate:
     converged: bool
     message: str
     optimizer_runs: pd.DataFrame
+    observation_noise_model: ObservationNoiseModel = "constant_carry"
 
 
 @dataclass
@@ -70,26 +76,36 @@ def estimate_with_fixed_eta_fast(
     starts: int = 4,
     maxiter: int = 1500,
     seed: int = 852,
+    observation_noise_model: ObservationNoiseModel = "constant_carry",
+    kappa_gap_upper_bound: float = 60.0,
 ) -> FixedEtaEstimate:
     """Re-optimize the other five parameters conditional on fixed eta_fast."""
     if not np.isfinite(eta_fast) or eta_fast <= 0.0:
         raise ValueError("eta_fast must be positive and finite")
     if starts < 1:
         raise ValueError("starts must be at least one")
-    dataset = make_dataset(panel, _gap_function)
+    observation_noise_model = normalize_observation_noise_model(
+        observation_noise_model
+    )
+    if not np.isfinite(kappa_gap_upper_bound) or kappa_gap_upper_bound <= 0.01:
+        raise ValueError("kappa_gap_upper_bound must be finite and greater than 0.01")
+    dataset = make_dataset(panel, _gap_function, observation_noise_model)
+    noise_bound = (
+        (np.log(1e-5), np.log(0.50))
+        if observation_noise_model == "constant_carry"
+        else (np.log(1e-8), np.log(0.05))
+    )
     bounds = [
         (np.log(0.01), np.log(20.0)),
-        (np.log(0.01), np.log(60.0)),
+        (np.log(0.01), np.log(kappa_gap_upper_bound)),
         (-0.50, 0.50),
         (np.log(1e-4), np.log(3.0)),
-        (np.log(1e-5), np.log(0.50)),
+        noise_bound,
     ]
 
     def objective(values: np.ndarray) -> float:
         try:
             params = _unpack_fixed(values, eta_fast)
-            if params.kappa_fast > 80.0:
-                return 1e100
             value = -two_factor_log_likelihood(dataset, params)
             return float(value) if np.isfinite(value) else 1e100
         except (ValueError, FloatingPointError, OverflowError, np.linalg.LinAlgError):
@@ -105,7 +121,14 @@ def estimate_with_fixed_eta_fast(
     )
     guesses = [warm]
     if starts > 1:
-        guesses.extend(initial_guesses(panel, starts - 1, seed))
+        guesses.extend(
+            initial_guesses(
+                panel,
+                starts - 1,
+                seed,
+                observation_noise_model,
+            )
+        )
 
     optimizer_results = []
     audit_rows = []
@@ -123,6 +146,7 @@ def estimate_with_fixed_eta_fast(
             {
                 "eta_fast_fixed": eta_fast,
                 "start_id": start_id,
+                "observation_noise_model": observation_noise_model,
                 **{f"start_{key}": value for key, value in asdict(guess).items()},
                 **{f"estimate_{key}": value for key, value in asdict(fitted).items()},
                 "log_likelihood": -float(result.fun),
@@ -142,6 +166,7 @@ def estimate_with_fixed_eta_fast(
         converged=bool(best.success),
         message=str(best.message),
         optimizer_runs=pd.DataFrame(audit_rows).sort_values("log_likelihood", ascending=False),
+        observation_noise_model=observation_noise_model,
     )
 
 
@@ -159,22 +184,30 @@ def run_fixed_eta_profile(
     rows: list[dict[str, object]] = []
     audits: list[pd.DataFrame] = []
     warm = calibration.estimate.params
+    observation_noise_model = calibration.estimate.observation_noise_model
+    kappa_gap_upper_bound = float(
+        calibration.metrics["kappa_fast_minus_slow_upper_bound"]
+    )
     for eta_fast in eta_values:
         estimate = estimate_with_fixed_eta_fast(
             calibration.sample,
             eta_fast,
             warm,
             starts=optimizer_starts,
+            observation_noise_model=observation_noise_model,
+            kappa_gap_upper_bound=kappa_gap_upper_bound,
         )
         filtered = two_factor_kalman_filter(
             calibration.sample,
             estimate.params,
             gap_function=_gap_function,
+            observation_noise_model=observation_noise_model,
         )
         fitted = attach_two_factor_fits(
             calibration.sample,
             filtered.states,
             estimate.params,
+            observation_noise_model,
         )
         latest_state = filtered.states.iloc[-1]
         option = price_from_parameters(calibration, estimate.params, latest_state)
@@ -189,11 +222,15 @@ def run_fixed_eta_profile(
                     estimate.params.kappa_fast - estimate.params.kappa_slow
                 ),
                 "kappa_fast_minus_slow_at_upper_bound": bool(
-                    estimate.params.kappa_fast - estimate.params.kappa_slow >= 60.0 - 1.0e-8
+                    estimate.params.kappa_fast - estimate.params.kappa_slow
+                    >= kappa_gap_upper_bound - 1.0e-8
                 ),
                 "theta": estimate.params.theta,
                 "eta_slow": estimate.params.eta_slow,
-                "sigma_epsilon": estimate.params.sigma_epsilon,
+                "observation_noise_model": observation_noise_model,
+                noise_parameter_name(observation_noise_model): (
+                    estimate.params.sigma_epsilon
+                ),
                 "log_likelihood": estimate.log_likelihood,
                 "converged": estimate.converged,
                 "carry_rmse_bps": np.sqrt(np.mean(carry_residual**2)) * 10_000,
