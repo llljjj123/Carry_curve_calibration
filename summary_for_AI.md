@@ -4,7 +4,7 @@
 
 This repository studies the implied-carry term structure of CSI 1000 index futures (CFFEX `IM` contracts), develops one- and two-factor Ornstein–Uhlenbeck (OU) state-space models for that curve, tests whether stock/carry shock correlation is identifiable, and prices an American-style put on the carry curve.
 
-This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary study, maturity-dependent observation-noise study, five-cut-date robustness test, production integration, and downstream pricing comparison.
+This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary study, maturity-dependent observation-noise study, five-cut-date robustness test, production integration, downstream pricing comparison, root-README fact check, and two-futures delta-hedging discussion.
 
 ## 2026-09-04 calibration, maturity-noise, and production-integration update
 
@@ -97,6 +97,15 @@ Conclusion: the robustness test passes. Constant log-futures noise was advanced 
 - Detailed implementation results are in `im_2factor_ou_carry/CONSTANT_LOG_FUTURES_INTEGRATION.md`. Candidate outputs are under `im_2factor_ou_carry/outputs_log_futures`, `Demo/outputs_log_futures`, and `carry_put_pricing/outputs_log_futures`.
 - Final validation in `spyder-env`: Ruff passed; production 17 tests, Demo 5 tests, pricing 10 tests, maturity-noise study 8 tests, and boundary study 4 tests all passed. The candidate production workflow, full Demo/profile, and pricing adapter ran end to end. Notebook JSON validation passed; the historical executed notebook outputs remain the constant-carry default snapshot.
 - Temporary smoke-run output directories and regenerable pytest/Ruff caches created during integration were removed after validation. The three complete candidate output directories above were retained.
+
+### Root README fact check and joint two-futures hedge discussion
+
+- The user incorporated the log-futures observation model into the root `README.md`, updated the project-folder count and Demo description, and removed completed boundary/noise diagnostics from the future-work list. The root README remains user-owned; do not alter it unless explicitly requested.
+- The fact check clarified that the log-futures Kalman observation is `z=log(F/S)-r*tau`, not the raw futures level. The method handles rather than eliminates the `1/tau` amplification: in carry units its observation-noise SD is `sigma_log_futures/tau`. The user intentionally retained the existing one-factor-at-a-time delta-hedging discussion in the README.
+- A theoretical joint hedge was discussed without changing pricing code. Futures maturity `h_i` has factor-exposure vector `[-F_i*A_s(h_i), -F_i*A_f(h_i)]`. Two futures can locally neutralize both option factor sensitivities when their two exposure vectors are linearly independent. The key selection condition is materially different ratios `A_f(h_1)/A_s(h_1)` and `A_f(h_2)/A_s(h_2)`; nearby maturities can make the hedge matrix nearly singular and produce unstable notionals.
+- Under the production log-futures estimates, the fast and slow half-lives are about 10.1 and 495.6 trading sessions. A short liquid maturity and a substantially longer liquid maturity are therefore a sensible starting pair, subject to actual listed contracts, liquidity, basis risk, transaction costs, and conditioning.
+- An illustrative calculation using option factor sensitivities `V_s=265.897`, `V_f=117.961`, futures levels of 7,500, and maturities of 20 and 100 sessions gives continuous hedge units of approximately 0.319 and 0.025 before multipliers, option notional, integer rounding, and execution constraints. This is an illustration, not a trading recommendation.
+- The current code still reports separate directional slow/fast futures-equivalent deltas. It does not yet choose multiple listed futures, solve a cross-maturity hedge matrix, or backtest joint hedge P&L. The full derivation, maturity-pair conditioning criterion, implementation outline, and limitations are saved in `Delta_hedging_explained.md`.
 
 ## 2026-09-01 delta update
 
