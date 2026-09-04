@@ -4,9 +4,9 @@
 
 This repository studies the implied-carry term structure of CSI 1000 index futures (CFFEX `IM` contracts), develops one- and two-factor Ornstein–Uhlenbeck (OU) state-space models for that curve, tests whether stock/carry shock correlation is identifiable, and prices an American-style put on the carry curve.
 
-This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary and maturity-dependent observation-noise studies.
+This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary study, maturity-dependent observation-noise study, five-cut-date robustness test, production integration, and downstream pricing comparison.
 
-## 2026-09-04 calibration and maturity-noise update
+## 2026-09-04 calibration, maturity-noise, and production-integration update
 
 ### Conversation and conceptual clarification
 
@@ -92,9 +92,11 @@ Conclusion: the robustness test passes. Constant log-futures noise was advanced 
 - Production and research full-sample parameters differ slightly because 25 far-dated 2027 observations use different maturity calendars. The research/Demo path uses the provisional explicit 2027-2028 company calendar; production retains its documented weekday fallback outside `chinese_calendar` coverage. Starting at the research parameters under production maturities converges to the production optimum, so this is not a filter or optimizer discrepancy.
 - `Demo` exposes the observation model and both bounds through Python, CLI, and notebook inputs. The candidate notebook/CLI output is isolated in `Demo/outputs_log_futures`. On the 2026-08-10 / 488-date / IM2612 snapshot, the gap falls from its bound of 60 to 18.848, but the option-only value rises from 63.8575 to 83.0422 (+30.04%). Slow/fast pathwise deltas change from -0.3324/-0.0141 to -0.4167/-0.1123.
 - `carry_put_pricing` mathematics is unchanged. Its example adapter now accepts `--calibration-output-dir` and `--output-dir`. On the 2026-08-21 IM2609 example, the candidate price is 29.6609 versus 36.2794 (-18.24%), while slow/fast pathwise deltas change from -0.4274/-0.2077 to -0.4373/-0.3516.
+- Full validation initially exposed one integration bug: rolling exports correctly used `sigma_log_futures`, while the rolling-chart code still expected `sigma_epsilon`. Both one- and two-factor rolling plots now accept the model-specific noise column, and a regression test covers this path.
 - Because downstream prices and hedges move materially and in sample-dependent directions, the recommendation is to keep constant log-futures as an opt-in parallel candidate and retain constant carry as the default until business/risk review accepts the valuation impact and the production 2027 calendar policy is resolved.
 - Detailed implementation results are in `im_2factor_ou_carry/CONSTANT_LOG_FUTURES_INTEGRATION.md`. Candidate outputs are under `im_2factor_ou_carry/outputs_log_futures`, `Demo/outputs_log_futures`, and `carry_put_pricing/outputs_log_futures`.
 - Final validation in `spyder-env`: Ruff passed; production 17 tests, Demo 5 tests, pricing 10 tests, maturity-noise study 8 tests, and boundary study 4 tests all passed. The candidate production workflow, full Demo/profile, and pricing adapter ran end to end. Notebook JSON validation passed; the historical executed notebook outputs remain the constant-carry default snapshot.
+- Temporary smoke-run output directories and regenerable pytest/Ruff caches created during integration were removed after validation. The three complete candidate output directories above were retained.
 
 ## 2026-09-01 delta update
 
