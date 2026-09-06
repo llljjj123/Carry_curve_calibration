@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 from typing import Any
@@ -34,6 +34,7 @@ from im_2factor_ou_carry.observation import OBSERVATION_NOISE_MODELS, Observatio
 
 DEMO_ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = DEMO_ROOT / "outputs"
+HEDGE_FUTURES_CONTRACTS = ("IM2609", "IM2703")
 
 
 @dataclass
@@ -194,6 +195,9 @@ def _summary(
 ) -> dict[str, Any]:
     quote = calibration.quote
     base = pricing.base_result
+    joint_hedge = base.two_futures_hedge
+    if joint_hedge is None:  # pragma: no cover - Demo always requests the hedge
+        raise AssertionError("Demo pricing result is missing the two-futures hedge")
     warnings = [
         "Historical two-factor OU parameters are provisionally treated as risk-neutral parameters.",
         "Exercise is available once per trading session, so the calculation is a daily Bermudan approximation to an American option.",
@@ -214,6 +218,8 @@ def _summary(
         )
     if calibration.metrics["weak_latest_instantaneous_observability"]:
         warnings.append("The latest instantaneous state meets the established weak-observability flag.")
+    if joint_hedge.warning is not None:
+        warnings.append(joint_hedge.warning)
     profile = eta_fast_profile.results
     best_profile = profile.loc[profile["log_likelihood"].idxmax()]
     profile_95 = profile.loc[profile["likelihood_ratio_vs_profile_max"] <= 3.841459]
@@ -264,8 +270,13 @@ def _summary(
             "explicit_calendar_years": list(explicit_calendar_years()),
             "unsupported_year_policy": "raise CalendarCoverageError; never use weekday fallback",
             "im2703_diagnostic": maturity_diagnostics("IM2703", quote["date"]),
+            "hedge_futures_diagnostics": [
+                maturity_diagnostics(instrument.contract, quote["date"])
+                for instrument in pricing.hedge_futures
+            ],
         },
         "option_result": base.as_dict(include_exercise_summary=False),
+        "two_futures_hedge": asdict(joint_hedge),
         "fixed_eta_fast_profile": profile_summary,
         "numerical_diagnostics": {
             "absolute_base_minus_fine_grid_price": float(
@@ -292,6 +303,7 @@ def run_demo(
     valuation_date: object = EVALUATION_DATE,
     sample_size: int = CALIBRATION_DATES,
     futures_contract: str = "IM2609",
+    hedge_futures_contracts: tuple[str, str] = HEDGE_FUTURES_CONTRACTS,
     observation_noise_model: ObservationNoiseModel = OBSERVATION_NOISE_MODEL,
     kappa_gap_upper_bound: float = KAPPA_GAP_UPPER_BOUND,
     eta_fast_upper_bound: float = FAST_ETA_UPPER_BOUND,
@@ -310,7 +322,7 @@ def run_demo(
         eta_fast_upper_bound=eta_fast_upper_bound,
     )
     export_calibration(calibration, output_dir)
-    pricing = price_optional_component(calibration)
+    pricing = price_optional_component(calibration, hedge_futures_contracts)
     export_pricing(pricing, output_dir)
     eta_fast_profile = run_fixed_eta_profile(calibration)
     eta_fast_profile.results["option_price_difference_from_cap6_fit"] = (
@@ -360,6 +372,13 @@ if __name__ == "__main__":
         help="Observation equation/noise specification used by calibration",
     )
     parser.add_argument(
+        "--hedge-futures-contracts",
+        nargs=2,
+        default=HEDGE_FUTURES_CONTRACTS,
+        metavar=("FIRST", "SECOND"),
+        help="Exactly two IM futures used for the joint slow/fast hedge",
+    )
+    parser.add_argument(
         "--kappa-gap-upper-bound",
         type=float,
         default=KAPPA_GAP_UPPER_BOUND,
@@ -382,6 +401,7 @@ if __name__ == "__main__":
         valuation_date=arguments.valuation_date,
         sample_size=arguments.sample_size,
         futures_contract=arguments.futures_contract,
+        hedge_futures_contracts=tuple(arguments.hedge_futures_contracts),
         observation_noise_model=arguments.observation_noise_model,
         kappa_gap_upper_bound=arguments.kappa_gap_upper_bound,
         eta_fast_upper_bound=arguments.eta_fast_upper_bound,

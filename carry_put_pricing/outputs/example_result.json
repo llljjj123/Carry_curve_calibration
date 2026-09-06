@@ -3,7 +3,27 @@
     "valuation_date": "2026-08-21",
     "contract": "IM2609",
     "expiry": "2026-09-18",
-    "source_directory": "D:\\LuJingjian\\Jupyter_files\\GuoYuan\\Studies\\carry_rate\\im_2factor_ou_carry\\outputs"
+    "source_directory": "D:\\Jupyter_files\\Carry_curve_calibration\\im_2factor_ou_carry\\outputs",
+    "hedge_futures": [
+      {
+        "contract": "IM2609",
+        "valuation_date": "2026-08-21",
+        "expiry": "2026-09-18",
+        "sessions_to_expiry": 20,
+        "futures_price": 7527.0,
+        "calendar_source": "chinese_calendar",
+        "weekday_fallback_used": false
+      },
+      {
+        "contract": "IM2703",
+        "valuation_date": "2026-08-21",
+        "expiry": "2027-03-19",
+        "sessions_to_expiry": 138,
+        "futures_price": 7117.0,
+        "calendar_source": "demo_company_calendar_2027_2028",
+        "weekday_fallback_used": false
+      }
+    ]
   },
   "contract": {
     "initial_spot": 7601.804,
@@ -85,6 +105,35 @@
       "bump_up_option_value": 36.59696951961103,
       "bump_down_model_futures": 7528.898558631579,
       "bump_up_model_futures": 7525.894048297336
+    },
+    "two_futures_hedge": {
+      "contract_1": "IM2609",
+      "contract_2": "IM2703",
+      "futures_price_1": 7527.0,
+      "futures_price_2": 7117.0,
+      "sessions_to_expiry_1": 20,
+      "sessions_to_expiry_2": 138,
+      "slow_loading_1": 0.07793643857037195,
+      "slow_loading_2": 0.4064125220354465,
+      "fast_loading_1": 0.02196229346426633,
+      "fast_loading_2": 0.02255832340037795,
+      "slow_futures_sensitivity_1": -586.6275731191897,
+      "slow_futures_sensitivity_2": -2892.4379193262725,
+      "fast_futures_sensitivity_1": -165.31018290553268,
+      "fast_futures_sensitivity_2": -160.54758764048987,
+      "option_slow_factor_sensitivity": 250.7669690893016,
+      "option_fast_factor_sensitivity": 34.330139020630156,
+      "determinant": -383967.79977904336,
+      "condition_number": 22.779452163320002,
+      "angular_separation": 0.21747388795746894,
+      "is_singular": false,
+      "warning": null,
+      "option_delta_1": -0.15375707016521215,
+      "option_delta_2": -0.055513320128843795,
+      "hedge_position_1": 0.15375707016521215,
+      "hedge_position_2": 0.055513320128843795,
+      "residual_slow_exposure": 0.0,
+      "residual_fast_exposure": 0.0
     }
   }
 }

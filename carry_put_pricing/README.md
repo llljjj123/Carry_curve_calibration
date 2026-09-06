@@ -128,6 +128,31 @@ uses the differentiated continuation value. The locked inception carry remains
 fixed under both factor bumps, so the calculation measures the existing
 contract rather than restriking it.
 
+## Joint hedge with two futures
+
+The public API also accepts exactly two `HedgeFuturesContract` inputs. For
+observed futures closes $F_1,F_2$ and remaining trading-session maturities
+$h_1,h_2$, it constructs
+
+$$
+G=
+\begin{bmatrix}
+-F_1A(\kappa_s,h_1)&-F_2A(\kappa_s,h_2)\\
+-F_1A(\kappa_f,h_1)&-F_2A(\kappa_f,h_2)
+\end{bmatrix}.
+$$
+
+The reported option deltas solve $G\Delta=[V_s,V_f]^\mathsf{T}$. The positions
+needed to hedge a long option are $n=-\Delta$, equivalently
+$Gn=-[V_s,V_f]^\mathsf{T}$. Results include the determinant, condition number,
+angular separation, and residual factor exposures. Contract multipliers and
+integer rounding are intentionally outside the current calculation.
+
+If the matrix is numerically singular, the calculation emits a warning and
+returns `None` for both deltas and both hedge positions. The standalone example
+and Demo use the Demo's strict provisional calendar rather than the shared 2027
+weekday fallback when constructing hedge maturities.
+
 ## Fixed-carry scale delta
 
 The pricer also reports `fixed_carry_scale_delta`, defined by proportionally
@@ -169,6 +194,7 @@ from carry_put_pricing import (
     CarryPutContract,
     FactorState,
     GBMParams,
+    HedgeFuturesContract,
     TwoFactorOUParams,
     price_american_carry_put,
 )
@@ -191,6 +217,10 @@ result = price_american_carry_put(
         fast=-0.016141256167290972,
     ),
     GBMParams(risk_free_rate=0.014, volatility=0.25),
+    hedge_futures=(
+        HedgeFuturesContract("IM2609", futures_price=7527.0, sessions_to_expiry=20),
+        HedgeFuturesContract("IM2703", futures_price=7117.0, sessions_to_expiry=138),
+    ),
 )
 
 print(result.price)
@@ -221,6 +251,7 @@ baseline pricing snapshot, select both directories explicitly:
 ```powershell
 & 'D:\miniforge3\envs\spyder-env\python.exe' -B .\analysis\run_example.py `
     --calibration-output-dir ..\im_2factor_ou_carry\outputs_log_futures `
+    --hedge-futures-contracts IM2609 IM2703 `
     --output-dir outputs_log_futures
 ```
 
@@ -233,6 +264,8 @@ by `--output-dir`:
 - `exercise_summary.csv`: exercise-region diagnostics by exercise date.
 - `curve_delta_comparison.csv`: slow and fast futures-equivalent deltas from
   pathwise backward induction and local bump-and-value.
+- `two_futures_hedge.csv`: joint two-contract deltas, opposite-signed hedge
+  positions, factor loadings, and singularity/conditioning diagnostics.
 
 For the cached 2026-08-21 inputs, the base-grid result is **36.2794 index
 points**, or **0.477248% of spot**. The base-versus-fine grid difference is
@@ -254,6 +287,8 @@ invariance, spot scaling, deterministic flat-carry behavior, and output
 diagnostics. They also verify delta sign/conversion, agreement between the two
 delta methods, zero delta for a one-session zero-value contract, and invariance
 of the futures-equivalent hedge ratios under proportional spot/futures scaling.
+They also cover exact two-factor neutralization and the no-delta warning for a
+singular futures pair.
 
 ## Scope limitations
 

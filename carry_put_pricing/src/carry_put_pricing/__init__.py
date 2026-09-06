@@ -15,6 +15,11 @@ from .models import (
     NumericalConfig,
     TwoFactorOUParams,
 )
+from .hedging import (
+    HedgeFuturesContract,
+    TwoFuturesHedgeResult,
+    calculate_two_futures_hedge,
+)
 from .pricer import (
     ExerciseStepSummary,
     FuturesEquivalentCurveDelta,
@@ -27,10 +32,13 @@ __all__ = [
     "ExerciseStepSummary",
     "FactorState",
     "FuturesEquivalentCurveDelta",
+    "HedgeFuturesContract",
     "GBMParams",
     "NumericalConfig",
     "PricingResult",
     "TwoFactorOUParams",
+    "TwoFuturesHedgeResult",
+    "calculate_two_futures_hedge",
     "exact_forward_price",
     "exact_forward_ratio",
     "exact_implied_carry",

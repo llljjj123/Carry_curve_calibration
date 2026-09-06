@@ -347,10 +347,28 @@ $x_f$. It does not eliminate:
 
 ## 10. Current implementation status
 
-The current pricing code reports separate slow and fast directional deltas and
-their bump-and-value checks. It does not yet select two listed futures, construct
-the cross-maturity exposure matrix, or output a joint two-contract hedge.
+The pricing library and Demo now retain the separate slow and fast directional
+deltas and additionally accept exactly two user-selected hedge futures. The
+joint calculation uses each contract's observed futures close, constructs the
+cross-maturity factor-exposure matrix, and reports both:
 
-Implementing that extension would require current quotes and maturities for all
-eligible hedge contracts, a pair-selection or constrained-optimization rule,
-contract multipliers and integer rounding, and a historical hedge backtest.
+- the option deltas expressed in units of the two futures; and
+- the opposite-signed futures positions that hedge a long option.
+
+The output also includes the determinant, condition number, angular separation,
+and post-hedge slow/fast residuals. A numerically singular matrix emits a warning
+and leaves both joint deltas and both hedge positions unset. The Demo and the
+standalone pricing example use the strict provisional Demo calendar for hedge
+maturities, including the explicit 2027--2028 company calendar; they never use
+the shared weekday fallback for this calculation.
+
+The agreed `IM2609`/`IM2703` pricing example on 2026-08-21 uses observed closes
+of 7,527 and 7,117 and strict-calendar maturities of 20 and 138 sessions. For the
+baseline calibration, the continuous positions that hedge a long carry put are
+approximately 0.153757 `IM2609` and 0.055513 `IM2703` units. The matrix condition
+number is approximately 22.78, its angular separation is approximately 0.2175,
+and both numerical residual factor exposures are zero.
+
+Contract multipliers, integer rounding, automatic pair selection, transaction
+costs, rolling rules, and historical hedge backtesting remain outside the
+current implementation. Backtesting is intentionally deferred to a later stage.

@@ -7,8 +7,9 @@ estimates CSI 1000 historical volatility over the same dates, derives the locked
 carry from the selected observed IM close, and prices only the American carry-put
 **optional component**.
 
-The futures contract is configurable. Its CFFEX expiry is inferred from the
-contract code and validated against the selected quote.
+The option's futures contract and the two joint-hedge futures contracts are
+configurable. Their CFFEX expiries are inferred from the contract codes and
+validated against the selected quotes using the strict Demo calendar.
 
 The linear payoff `F(t,T) - F(0,T)` is deliberately excluded.
 
@@ -48,6 +49,7 @@ For example, to use exactly 250 trading dates ending on 2026-08-10:
   --valuation-date 2026-08-10 `
   --sample-size 250 `
   --futures-contract IM2612 `
+  --hedge-futures-contracts IM2609 IM2703 `
   --observation-noise-model constant_log_futures `
   --kappa-gap-upper-bound 120 `
   --eta-fast-upper-bound 6 `
@@ -65,6 +67,7 @@ The notebook exposes the same inputs in its first code cell:
 VALUATION_DATE = "2026-08-21"
 SAMPLE_SIZE = 244
 FUTURES_CONTRACT = "IM2612"
+HEDGE_FUTURES_CONTRACTS = ("IM2609", "IM2703")
 OBSERVATION_NOISE_MODEL = "constant_log_futures"
 KAPPA_GAP_UPPER_BOUND = 120.0
 ETA_FAST_UPPER_BOUND = 6.0
@@ -86,6 +89,20 @@ sessions remaining from 2026-08-21, versus 144 under the old weekday fallback.
 The company calendar is a planning input rather than a final official CFFEX
 schedule and should be replaced or confirmed when the official 2027 calendar
 is published.
+
+## Joint two-futures hedge
+
+The Demo reports the existing slow-only and fast-only directional deltas and an
+additional joint hedge using the two selected futures. The joint calculation
+uses observed futures closes and solves the two-by-two slow/fast exposure
+system. It reports the option deltas, opposite-signed positions required to
+hedge a long option, determinant, condition number, angular separation, and
+post-hedge residual factor exposures in `two_futures_hedge.csv` and
+`demo_summary.json`.
+
+Contract multipliers and integer rounding are omitted. If the hedge matrix is
+singular, the Demo emits and records a warning and leaves both joint deltas and
+hedge positions unset. Backtesting is intentionally deferred.
 
 The base calibration uses 12 optimizer starts. The fixed-eta profile re-estimates
 the other five parameters from four starts at each grid point and reprices the

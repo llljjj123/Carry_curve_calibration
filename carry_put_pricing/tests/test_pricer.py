@@ -8,8 +8,10 @@ from carry_put_pricing import (
     CarryPutContract,
     FactorState,
     GBMParams,
+    HedgeFuturesContract,
     NumericalConfig,
     TwoFactorOUParams,
+    calculate_two_futures_hedge,
     price_american_carry_put,
 )
 
@@ -146,3 +148,52 @@ def test_factor_deltas_are_converted_to_futures_equivalents() -> None:
             rel=1.0e-12,
         )
         assert delta.absolute_method_difference < 0.005
+
+
+def test_two_futures_hedge_neutralizes_both_factor_exposures() -> None:
+    hedge_futures = (
+        HedgeFuturesContract("IM2609", 7527.0, 20),
+        HedgeFuturesContract("IM2703", 7117.0, 138),
+    )
+    result = price_american_carry_put(
+        CONTRACT,
+        PARAMS,
+        STATE,
+        GBMParams(0.014, 0.25),
+        numerical=FAST_CONFIG,
+        hedge_futures=hedge_futures,
+    )
+    joint = result.two_futures_hedge
+    assert joint is not None
+    assert not joint.is_singular
+    assert joint.warning is None
+    assert joint.option_delta_1 is not None
+    assert joint.option_delta_2 is not None
+    assert joint.hedge_position_1 == pytest.approx(-joint.option_delta_1)
+    assert joint.hedge_position_2 == pytest.approx(-joint.option_delta_2)
+    assert joint.residual_slow_exposure == pytest.approx(0.0, abs=1.0e-12)
+    assert joint.residual_fast_exposure == pytest.approx(0.0, abs=1.0e-12)
+    assert 0.0 < joint.angular_separation <= 1.0
+    assert math.isfinite(joint.condition_number)
+
+
+def test_singular_two_futures_pair_warns_and_returns_no_delta() -> None:
+    hedge_futures = (
+        HedgeFuturesContract("IM2609", 7527.0, 20),
+        HedgeFuturesContract("IM2609_COPY", 7500.0, 20),
+    )
+    with pytest.warns(RuntimeWarning, match="hedge matrix.*singular"):
+        result = calculate_two_futures_hedge(
+            option_slow_factor_sensitivity=100.0,
+            option_fast_factor_sensitivity=50.0,
+            ou_params=PARAMS,
+            hedge_futures=hedge_futures,
+        )
+    assert result.is_singular
+    assert result.warning is not None
+    assert result.option_delta_1 is None
+    assert result.option_delta_2 is None
+    assert result.hedge_position_1 is None
+    assert result.hedge_position_2 is None
+    assert result.residual_slow_exposure is None
+    assert result.residual_fast_exposure is None

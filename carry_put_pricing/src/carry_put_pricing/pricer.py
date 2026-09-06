@@ -16,6 +16,11 @@ from .analytics import (
     ou_integral_loading,
     ou_integral_variance,
 )
+from .hedging import (
+    HedgeFuturesContract,
+    TwoFuturesHedgeResult,
+    calculate_two_futures_hedge,
+)
 from .models import (
     CarryPutContract,
     FactorState,
@@ -78,6 +83,7 @@ class PricingResult:
     fixed_carry_scale_delta: float
     slow_curve_delta: FuturesEquivalentCurveDelta
     fast_curve_delta: FuturesEquivalentCurveDelta
+    two_futures_hedge: TwoFuturesHedgeResult | None
     exercise_summary: tuple[ExerciseStepSummary, ...]
 
     def as_dict(self, *, include_exercise_summary: bool = True) -> dict[str, object]:
@@ -351,6 +357,7 @@ def price_american_carry_put(
     gbm_params: GBMParams,
     *,
     numerical: NumericalConfig | None = None,
+    hedge_futures: tuple[HedgeFuturesContract, HedgeFuturesContract] | None = None,
 ) -> PricingResult:
     """Price the daily-exercisable carry put by exact-transition backward induction.
 
@@ -580,6 +587,18 @@ def price_american_carry_put(
         initial_state=initial_state,
         risk_free_rate=gbm_params.risk_free_rate,
     )
+    two_futures_hedge = None
+    if hedge_futures is not None:
+        two_futures_hedge = calculate_two_futures_hedge(
+            option_slow_factor_sensitivity=(
+                slow_curve_delta.pathwise_option_factor_sensitivity
+            ),
+            option_fast_factor_sensitivity=(
+                fast_curve_delta.pathwise_option_factor_sensitivity
+            ),
+            ou_params=ou_params,
+            hedge_futures=hedge_futures,
+        )
     summaries.sort(key=lambda row: row.elapsed_sessions)
     return PricingResult(
         price=price,
@@ -602,5 +621,6 @@ def price_american_carry_put(
         fixed_carry_scale_delta=fixed_carry_scale_delta,
         slow_curve_delta=slow_curve_delta,
         fast_curve_delta=fast_curve_delta,
+        two_futures_hedge=two_futures_hedge,
         exercise_summary=tuple(summaries),
     )

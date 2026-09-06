@@ -1,682 +1,471 @@
-# Carry Curve Calibration — AI Handoff Summary
+# Carry Curve Calibration — Project Summary for AI
 
-## Purpose and scope
+## Project purpose
 
-This repository studies the implied-carry term structure of CSI 1000 index futures (CFFEX `IM` contracts), develops one- and two-factor Ornstein–Uhlenbeck (OU) state-space models for that curve, tests whether stock/carry shock correlation is identifiable, and prices an American-style put on the carry curve.
+This repository models the implied-carry term structure of CSI 1000 index
+futures (`IM` contracts), calibrates one- and two-factor Ornstein--Uhlenbeck
+(OU/Vasicek) state-space models, studies observation noise and parameter
+identification, and prices an American-style put on the carry curve. It also
+calculates directional one-futures deltas and a joint slow/fast hedge using two
+futures maturities.
 
-This handoff was prepared on 2026-08-26 from `session_log.md` and the executable code, tests, configurations, and current generated summaries in the implementation folders. It was updated on 2026-09-01 after the delta-definition review, pricing-library change, Demo notebook rerun, and user-requested root-README documentation work, and again on 2026-09-04 after the fast-factor boundary study, maturity-dependent observation-noise study, five-cut-date robustness test, production integration, downstream pricing comparison, root-README fact check, and two-futures delta-hedging discussion.
+The pricing output covers only the carry-put optional component. The separate
+linear futures leg is not included.
 
-## 2026-09-04 calibration, maturity-noise, and production-integration update
+## Repository structure
 
-### Conversation and conceptual clarification
+| Folder | Role |
+|---|---|
+| `im_ou_carry` | Baseline one-factor OU carry calibration and diagnostics. |
+| `im_2factor_ou_carry` | Main slow/fast two-factor calibration, one-factor comparison, filtering, diagnostics, and production-style outputs. |
+| `im_corr_ou_1factor` | Exact correlated one-factor experiment using the futures curve alone or jointly with spot returns. |
+| `carry_put_pricing` | Reusable American carry-put pricing library, curve deltas, and two-futures hedge calculation. |
+| `fast_factor_boundary_study` | Isolated analysis of fast mean-reversion bounds, sample windows, and short-end exclusions. |
+| `maturity_noise_study` | Comparison of constant-carry and maturity-dependent observation-noise specifications with chronological holdouts. |
+| `Demo` | Configurable end-to-end calibration, option-pricing, delta, hedge, export, chart, and notebook workflow. |
 
-- After reviewing this handoff and the root README, the user agreed that the first priority was diagnosing why `kappa_fast-kappa_slow` reached its upper bound in the recent 488-date Demo calibration.
-- The difference between posterior in-sample residuals and genuine out-of-sample errors was clarified. In calibration, the optimizer repeatedly proposes global OU/noise parameters and the Kalman filter integrates over the daily latent states to return the summed one-step predictive log likelihood. In the chronological holdout, the estimated parameters are frozen; the state is still predicted and updated daily, but each day's errors and predictive likelihood are recorded before that day's observations update the state.
-- `Calibration_explained.md` was created as a review note covering the state-space equations, Kalman prediction/update recursion, likelihood construction, optimizer interaction, parameter constraints, multi-start estimation, and chronological OOS testing. At the user's request, all display mathematics was changed to balanced `$$` delimiters so it renders in VS Code.
+Main dependency flow:
+
+```text
+cached CSI 1000 spot and IM closes
+              |
+              +--> im_ou_carry
+              +--> im_2factor_ou_carry
+              |          |
+              |          +--> carry_put_pricing
+              |          +--> Demo/calibration.py
+              |
+              +--> im_corr_ou_1factor
+
+carry_put_pricing/src
+              |
+              +--> Demo/option_pricing.py
+```
+
+The calibration projects intentionally duplicate some data and diagnostic code
+to keep experiments isolated. The Demo imports the two-factor calibration and
+pricing engines rather than duplicating them.
+
+## Market data and conventions
+
+- Spot is the CSI 1000 daily close from AkShare symbol `sh000852`.
+- Futures inputs are individual `IMYYMM` daily **close** prices. Settlement is
+  zero in the cache and must not be used.
+- Spot and futures closes are aligned by date. Any timing mismatch is absorbed
+  by observation noise.
+- The continuously compounded risk-free rate is normally `0.014`.
+- Observed annualized carry is
+
+  $$
+  y_{t,T}=r-\frac{\log(F_{t,T}/S_t)}{\tau},
+  \qquad \tau=T-t.
+  $$
+
+- Maturity and OU time gaps use exchange trading sessions divided by 244.
+- Remaining sessions are counted over `(observation date, expiry]`; expiry has
+  zero remaining sessions.
+- Standard CFFEX expiry is the third Friday of the contract month, shifted
+  forward when that date is not a trading session.
+- Contracts with five or fewer remaining sessions and carries with absolute
+  value above 0.50 are excluded. Stale runs are flagged and normally retained.
+- The raw data cache is the reproducibility anchor. Refresh it only when a new
+  market-data snapshot is intentionally required.
+
+The common cached panel runs from 2022-07-22 through 2026-08-21 and contains 991
+curve dates, 52 contracts (`IM2208` through `IM2703`), 3,964 raw futures rows,
+and 3,667 accepted observations.
+
+### Calendar behavior
+
+The shared calibration calendar uses `chinese_calendar` when covered and falls
+back to weekdays for unsupported distant years. This affects 2027 maturities.
+The Demo instead uses `chinese_calendar` through 2026, the explicit provisional
+calendar in `Demo/data/china_exchange_calendar_2027_2028.csv` for 2027--2028,
+and raises `CalendarCoverageError` outside covered years. The Demo never uses a
+weekday fallback. Replace the provisional file when the official CFFEX calendar
+is available.
+
+## Carry models
+
+### One-factor OU
+
+The baseline instantaneous carry follows
+
+$$
+dc_t=\kappa(\theta-c_t)dt+\eta dW_t.
+$$
+
+With the legacy carry observation equation,
+
+$$
+y_t(\tau)=\theta+
+\frac{1-e^{-\kappa\tau}}{\kappa\tau}(c_t-\theta)
++\varepsilon_t(\tau).
+$$
+
+The implementation uses exact unequal-gap OU transitions, a stationary initial
+distribution, ragged daily curves, multi-start L-BFGS-B estimation, and a
+Kalman filter. A one-factor curve is monotonic toward `theta`; it cannot produce
+genuine humps or U-shapes. About 27.75% of observed curve dates have been
+classified as hump/U-shape dates.
+
+### Independent two-factor OU
+
+The main state is
+
+$$
+c_t=\theta+x_{s,t}+x_{f,t},
+$$
+
+$$
+dx_{j,t}=-\kappa_jx_{j,t}dt+\eta_jdW_{j,t},
+\qquad 0<\kappa_s<\kappa_f.
+$$
+
+The slow and fast shocks are independent. Opposite-signed factors can generate
+one meaningful hump or U-shape. Parameter ordering is imposed by estimating
+`log(kappa_slow)` and `log(kappa_fast-kappa_slow)`.
+
+Two observation specifications are implemented:
+
+1. `constant_carry`
+
+   $$
+   y_t(\tau)=\theta+B_s(\tau)x_{s,t}+B_f(\tau)x_{f,t}
+   +\varepsilon_{t,T},
+   $$
+
+   where
+
+   $$
+   B_j(\tau)=\frac{1-e^{-\kappa_j\tau}}{\kappa_j\tau}.
+   $$
+
+2. `constant_log_futures`
+
+   $$
+   z_{t,T}=\log(F_{t,T}/S_t)-r\tau
+   =-\theta\tau-A_s(\tau)x_{s,t}-A_f(\tau)x_{f,t}+u_{t,T},
+   $$
+
+   $$
+   A_j(\tau)=\frac{1-e^{-\kappa_j\tau}}{\kappa_j},
+   \qquad u_{t,T}\sim N(0,\sigma_{\log F}^2).
+   $$
+
+   In carry units this is equivalent to noise standard deviation
+   `sigma_log_futures/tau`, so very short maturities receive less weight. The
+   reported likelihood includes the exact `sum(log(tau))` Jacobian when it is
+   compared with carry-space models.
+
+`constant_carry` remains the default in `im_2factor_ou_carry/config.yaml`.
+`config_log_futures.yaml` is the opt-in candidate and writes to
+`outputs_log_futures`.
+
+The production log-futures snapshot estimates approximately
+`kappa_slow=0.3413`, `kappa_fast=16.7336`, `eta_slow=0.0469`,
+`eta_fast=1.2403`, and `sigma_log_futures=0.0009744`. Its slow and fast
+half-lives are roughly 496 and 10 trading sessions.
+
+### Correlated one-factor experiment
+
+`im_corr_ou_1factor` uses
+
+$$
+\frac{dS_t}{S_t}=(r-c_t)dt+\sigma dW_t^S,
+\qquad
+dc_t=\kappa(\theta-c_t)dt+\eta dW_t^c,
+\qquad
+dW_t^SdW_t^c=\rho dt.
+$$
+
+It implements the exact stochastic-carry futures formula, curve-only filtering,
+joint curve/return filtering, and an RTS smoother. Spot volatility is fixed at
+25%. The joint estimate is approximately `rho=-0.0328` with standard error
+0.0361; its profile interval includes zero and it does not improve forecasts.
+The current data therefore do not support a nonzero correlation in this
+one-factor specification.
+
+## Research conclusions
 
 ### Fast-factor boundary study
 
-- A self-contained `fast_factor_boundary_study` folder was created and run in `D:\miniforge3\envs\spyder-env\python.exe`. It reuses the strict Demo calendar, cached data, validated two-factor likelihood, and pricing engine without changing production code or the Demo.
-- For the 488-date sample, the original gap cap of 60 is restrictive. Raising it gives an interior optimum at a gap of about 69.68; caps of 90, 120, and 180 give the same optimum. Relative to cap 60, log likelihood improves only about 1.30 and the IM2612 option value falls about 2.07 points.
-- The fixed-gap likelihood peaks near 70. The interpolated 95% likelihood-ratio region is approximately 58.8-92.1. This shows that the cap-60 solution was constrained, but the likelihood does not improve indefinitely as the cap is raised.
-- The fast timescale is sample dependent: estimated gaps are about 68.23, 69.68, 42.56, and 42.90 for 244-, 488-, 732-, and 991-date windows. The associated option prices range from 61.51 to 83.08 points, much wider than the roughly two-point cap effect.
-- Short-end exclusion is not a satisfactory fix. Excluding through 10 sessions produces a weakly multimodal boundary solution, while excluding through 15 or 20 sessions abruptly lowers the estimated gap to about 16.83 or 15.26. Contracts around 11-15 sessions contain substantial fast-factor information; deleting them changes the economic model rather than simply removing harmless outliers.
-- The study therefore recommended keeping all accepted observations, using a diagnostic gap cap of 120, and testing maturity-dependent observation noise next. Detailed results are in `fast_factor_boundary_study/RESULTS.md`.
-
-### Maturity-dependent observation-noise study
-
-A second isolated folder, `maturity_noise_study`, compares four specifications:
-
-1. constant annualized-carry noise, the current baseline;
-2. two carry-noise buckets, with separate standard deviations at `sessions <= 15` and `sessions > 15`;
-3. smooth carry plus log-price noise,
-
-   $$
-   \sigma_q(\tau)=\sqrt{\sigma_{floor}^2+
-   \left(\frac{\sigma_{logF}}{\tau}\right)^2};
-   $$
-
-4. direct filtering of `log(F/S)-r*tau` with constant log-futures noise, equivalent in carry units to
-
-   $$
-   \sigma_q(\tau)=\frac{\sigma_{logF}}{\tau}.
-   $$
-
-The direct log-futures likelihood adds the exact `sum(log(tau))` change-of-variables Jacobian, so its likelihood, AIC/BIC, and predictive score are comparable with the carry-observation models.
-
-The common chronological design uses the full 991-date panel through 2026-08-21. Training contains 792 dates and 2,931 observations through 2025-10-29; the holdout contains 199 dates and 736 observations. Parameters are frozen in the holdout while the state updates sequentially after each day's predictions are scored. Separate full-sample fits price IM2612. Every model uses 12 L-BFGS-B starts, gap cap 120, and `eta_fast` cap 6.
-
-Out-of-sample aggregate results:
-
-| Model | Carry RMSE (bp) | Carry MAE (bp) | Futures RMSE | Futures MAE | Mean log score |
-|---|---:|---:|---:|---:|---:|
-| Constant carry | 359.891 | 213.856 | 33.354 | 25.135 | 2.890140 |
-| Two buckets | **344.504** | 207.520 | 32.245 | 23.992 | 3.059324 |
-| Smooth carry + log-price | 346.070 | 205.611 | **31.801** | 23.426 | 3.219316 |
-| Constant log-futures | 346.067 | **205.610** | 31.801 | **23.426** | **3.219320** |
-
-Relative to constant carry noise, constant log-futures noise improves carry RMSE by 3.84%, futures RMSE by 4.66%, carry MAE by 3.86%, and futures MAE by 6.80%. The two-bucket carry-RMSE advantage over direct log-futures is only 1.563 bp, or 0.45%, while the direct model is better on futures errors, MAE, predictive density, and parsimony.
-
-Full-sample results:
-
-| Model | Kappa gap | Log likelihood | BIC | IM2612 option price |
-|---|---:|---:|---:|---:|
-| Constant carry | 42.9034 | 10,857.383 | -21,665.524 | 74.679 |
-| Two buckets | 17.7756 | 11,285.011 | -22,512.573 | 86.163 |
-| Smooth carry + log-price | 16.2033 | 11,673.612 | -23,289.775 | 86.764 |
-| Constant log-futures | **16.2033** | **11,673.612** | **-23,297.982** | **86.764** |
-
-The maturity-dependent models reduce the kappa gap by 59%-62% relative to the constant-carry fit. The recommended constant log-futures estimates are `kappa_slow=0.28855`, `kappa_fast=16.49182`, `eta_slow=0.04601`, `eta_fast=1.22572`, and `sigma_log_futures=0.00097159`. This corresponds to approximately constant futures observation noise of 7.29 points at a representative futures level of 7,500, while carry noise scales as `1/tau`.
-
-The smooth model estimates `sigma_carry_floor=8.58e-7`, effectively zero, and is numerically identical to direct log-futures noise. Because direct log-futures uses one fewer parameter, it wins full-sample BIC and is the recommended candidate specification. Observation-noise choice is economically material: the IM2612 optional-component value rises from 74.679 to 86.764 and fast pathwise delta changes from -0.0443 to -0.1475.
-
-All 12 starts in every train/full fit reported convergence; 7-10 starts per fit reproduced the selected likelihood within 0.01. Other starts found clearly inferior local modes, so multi-start optimization remains necessary. Ruff passed and all five focused tests passed in `spyder-env`. Detailed findings are in `maturity_noise_study/RESULTS.md`, with raw comparisons, predictions, fit checkpoints, optimizer audits, and charts under `maturity_noise_study/outputs`.
-
-### Multiple-cut-date follow-up
-
-The agreed robustness test was subsequently completed in `maturity_noise_study/multi_cut_study.py`. It uses five expanding calibrations and five consecutive, non-overlapping 120-date holdouts covering the final 600 curve dates exactly once. The models are constant carry, two buckets, and constant log-futures; each of the 15 fits uses 12 starts.
-
-Across 600 test dates and 2,219 observations, constant log-futures improves pooled carry RMSE by 5.95%, carry MAE by 4.12%, futures RMSE by 5.59%, and futures MAE by 7.25% relative to constant carry. It wins futures RMSE and predictive log score in all five windows, and carry RMSE in three. HAC paired tests show strong gains for carry MAE, both futures losses, and log score; the carry squared-error gain versus constant carry is borderline (`p=0.0505`) and versus two buckets is not decisive (`p=0.1013`).
-
-The constant-log-futures kappa gap ranges only from 14.79 to 18.45, with mean 16.20; `eta_fast` ranges from 1.17 to 1.52. Neither parameter hits a bound. Constant-carry gaps range from 35.62 to 44.23. All starts report convergence, and 7-9 starts per fit reproduce the selected likelihood within 0.01.
-
-Conclusion: the robustness test passes. Constant log-futures noise was advanced to production integration behind a configuration switch. Full interpretation is in `maturity_noise_study/MULTI_CUT_RESULTS.md`; generated evidence is under `maturity_noise_study/outputs/multi_cut`.
-
-### Production integration and downstream comparison
-
-- `im_2factor_ou_carry` now supports `estimation.observation_noise_model` values `constant_carry` and `constant_log_futures` in both its one- and two-factor models. `constant_carry` remains the default in `config.yaml`; `config_log_futures.yaml` is the opt-in candidate and writes to `outputs_log_futures`.
-- Internally, `sigma_epsilon` remains the backward-compatible native-noise field. Parameter tables and summaries expose it as `sigma_log_futures` for the candidate. Carry diagnostics convert it using `sigma_log_futures/tau`, and reported log likelihood adds the exact `sum(log(tau))` Jacobian.
-- The kappa-gap and `eta_fast` bounds are now configurable. The candidate uses caps 120 and 6; the baseline preserves 60 and 3.
-- The full production candidate run passed on 3,667 observations and 991 dates. It estimates `kappa_slow=0.341280`, `kappa_fast=16.733586`, gap `16.392307`, `theta=0.034420`, `eta_slow=0.046913`, `eta_fast=1.240254`, and `sigma_log_futures=0.000974421`. Both boundary issues are absent and the Hessian is stable.
-- On the production 20% evaluation holdout, the candidate improves carry RMSE/MAE by 3.78%/3.76% and futures RMSE/MAE by 4.09%/6.27% relative to the saved constant-carry baseline.
-- Production and research full-sample parameters differ slightly because 25 far-dated 2027 observations use different maturity calendars. The research/Demo path uses the provisional explicit 2027-2028 company calendar; production retains its documented weekday fallback outside `chinese_calendar` coverage. Starting at the research parameters under production maturities converges to the production optimum, so this is not a filter or optimizer discrepancy.
-- `Demo` exposes the observation model and both bounds through Python, CLI, and notebook inputs. The candidate notebook/CLI output is isolated in `Demo/outputs_log_futures`. On the 2026-08-10 / 488-date / IM2612 snapshot, the gap falls from its bound of 60 to 18.848, but the option-only value rises from 63.8575 to 83.0422 (+30.04%). Slow/fast pathwise deltas change from -0.3324/-0.0141 to -0.4167/-0.1123.
-- `carry_put_pricing` mathematics is unchanged. Its example adapter now accepts `--calibration-output-dir` and `--output-dir`. On the 2026-08-21 IM2609 example, the candidate price is 29.6609 versus 36.2794 (-18.24%), while slow/fast pathwise deltas change from -0.4274/-0.2077 to -0.4373/-0.3516.
-- Full validation initially exposed one integration bug: rolling exports correctly used `sigma_log_futures`, while the rolling-chart code still expected `sigma_epsilon`. Both one- and two-factor rolling plots now accept the model-specific noise column, and a regression test covers this path.
-- Because downstream prices and hedges move materially and in sample-dependent directions, the recommendation is to keep constant log-futures as an opt-in parallel candidate and retain constant carry as the default until business/risk review accepts the valuation impact and the production 2027 calendar policy is resolved.
-- Detailed implementation results are in `im_2factor_ou_carry/CONSTANT_LOG_FUTURES_INTEGRATION.md`. Candidate outputs are under `im_2factor_ou_carry/outputs_log_futures`, `Demo/outputs_log_futures`, and `carry_put_pricing/outputs_log_futures`.
-- Final validation in `spyder-env`: Ruff passed; production 17 tests, Demo 5 tests, pricing 10 tests, maturity-noise study 8 tests, and boundary study 4 tests all passed. The candidate production workflow, full Demo/profile, and pricing adapter ran end to end. Notebook JSON validation passed; the historical executed notebook outputs remain the constant-carry default snapshot.
-- Temporary smoke-run output directories and regenerable pytest/Ruff caches created during integration were removed after validation. The three complete candidate output directories above were retained.
-
-### Root README fact check and joint two-futures hedge discussion
-
-- The user incorporated the log-futures observation model into the root `README.md`, updated the project-folder count and Demo description, and removed completed boundary/noise diagnostics from the future-work list. The root README remains user-owned; do not alter it unless explicitly requested.
-- The fact check clarified that the log-futures Kalman observation is `z=log(F/S)-r*tau`, not the raw futures level. The method handles rather than eliminates the `1/tau` amplification: in carry units its observation-noise SD is `sigma_log_futures/tau`. The user intentionally retained the existing one-factor-at-a-time delta-hedging discussion in the README.
-- A theoretical joint hedge was discussed without changing pricing code. Futures maturity `h_i` has factor-exposure vector `[-F_i*A_s(h_i), -F_i*A_f(h_i)]`. Two futures can locally neutralize both option factor sensitivities when their two exposure vectors are linearly independent. The key selection condition is materially different ratios `A_f(h_1)/A_s(h_1)` and `A_f(h_2)/A_s(h_2)`; nearby maturities can make the hedge matrix nearly singular and produce unstable notionals.
-- Under the production log-futures estimates, the fast and slow half-lives are about 10.1 and 495.6 trading sessions. A short liquid maturity and a substantially longer liquid maturity are therefore a sensible starting pair, subject to actual listed contracts, liquidity, basis risk, transaction costs, and conditioning.
-- An illustrative calculation using option factor sensitivities `V_s=265.897`, `V_f=117.961`, futures levels of 7,500, and maturities of 20 and 100 sessions gives continuous hedge units of approximately 0.319 and 0.025 before multipliers, option notional, integer rounding, and execution constraints. This is an illustration, not a trading recommendation.
-- The current code still reports separate directional slow/fast futures-equivalent deltas. It does not yet choose multiple listed futures, solve a cross-maturity hedge matrix, or backtest joint hedge P&L. The full derivation, maturity-pair conditioning criterion, implementation outline, and limitations are saved in `Delta_hedging_explained.md`.
-
-## 2026-09-01 delta update
-
-- The proposed quantity `C_t/F_t,T` was checked carefully. It is not the ordinary partial derivative with respect to futures while spot is fixed; that immediate-exercise derivative is `-1` in the in-the-money region. Instead, `C/F` is the proportional scale sensitivity when spot and futures are multiplied by the same factor and current implied carry is fixed. By homogeneity, the corresponding full-option sensitivity is `V/F`.
-- `carry_put_pricing` now exposes `PricingResult.fixed_carry_scale_delta = V/F_model`. The model-implied futures price is used so the denominator is consistent with the slow/fast curve-delta conversions. This scale delta fixes the futures/spot ratio, locked carry, and both OU states; it is distinct from a carry-curve hedge ratio.
-- The fixed `IM2609` example has price `36.27943692`, model futures `7527.39615356`, and fixed-carry scale delta `0.00481965293`. The pricing suite still has 10 passing tests, including analytical `V/F`, proportional co-scaling, and finite-difference checks; Ruff passed and the standard example was regenerated.
-- `Demo/Carry_Put_Demo.ipynb` now contains an executed futures-equivalent curve-delta subsection immediately below option pricing. It reports slow and fast pathwise/differentiated-backward-induction deltas, local bump-and-value checks, factor sensitivities, futures sensitivities, and the fact that spot is held fixed. The fixed-carry scale delta is intentionally not displayed because the Demo's current focus is changes in carry `q`.
-- The current 2026-08-10 / 488-date / `IM2612` Demo rerun gives slow deltas `-0.33235550` pathwise and `-0.33238170` bump-and-value, and fast deltas `-0.01406941` pathwise and `-0.01404718` bump-and-value. The notebook executed end to end and regenerated the Demo CSV/JSON/PNG snapshot.
-- The user added a `## Delta部分` section to the root `README.md`. At the user's explicit request, a `### 数值计算方法` subsection was appended without changing the user's prior writing. It documents the derivative conventions, exercise/continuation derivative handling, continuation-side tie convention, exact-model futures conversion, local one-grid-step bump, and directional hedge interpretation.
-
-The principal implementation and diagnostic folders are:
-
-1. `im_ou_carry`: baseline one-factor OU calibration and diagnostics.
-2. `im_2factor_ou_carry`: preferred two-factor OU calibration, including a like-for-like one-factor comparison.
-3. `im_corr_ou_1factor`: exact correlated one-factor extension with curve-only and joint curve/return likelihoods.
-4. `carry_put_pricing`: isolated numerical library and fixed example for the American carry-put optional component.
-5. `Demo`: configurable end-to-end calibration and carry-put demonstration that reuses the two-factor and pricing engines.
-6. `fast_factor_boundary_study`: isolated cap, sample-window, short-end, and fixed-gap diagnostics.
-7. `maturity_noise_study`: isolated constant-versus-maturity-dependent observation-noise comparison with strict chronological OOS scoring.
-
-Do not modify or revert the root `README.md` unless the user explicitly asks. It is user-owned writing, including the `## Delta部分` section. Also assume the worktree may already contain user changes, especially in `AGENTS.md`, `README.md`, `Demo/Carry_Put_Demo.ipynb`, and `Demo/outputs`; inspect `git status` before editing anything.
-
-## Repository dependency map
-
-```text
-cached CSI 1000 spot + IM futures closes
-                  |
-                  +--> im_ou_carry (baseline one-factor model)
-                  |
-                  +--> im_2factor_ou_carry (main slow/fast model)
-                  |          |
-                  |          +--> carry_put_pricing (reads saved two-factor results)
-                  |          |
-                  |          +--> Demo/calibration.py (imports the two-factor engine)
-                  |
-                  +--> im_corr_ou_1factor (isolated correlation experiment)
-
-carry_put_pricing/src
-          |
-          +--> Demo/option_pricing.py (imports the pricing engine)
-```
-
-The three calibration folders intentionally duplicate some data, calendar, quality, one-factor, diagnostic, and plotting code so experiments remain isolated. The Demo avoids duplicating the core two-factor Kalman filter/estimator and carry-put pricer: it adds sibling `src` directories to `sys.path` and imports them.
-
-## Agreed market-data and modelling conventions
-
-These conventions override earlier calendar-day or settlement-price specifications:
-
-- Spot is the CSI 1000 daily close from AkShare symbol `sh000852`.
-- Futures are individual `IMYYMM` daily **close** prices, not settlement. In the cache, settlement is zero throughout and is unusable.
-- Spot and futures closes are aligned by date. Any timestamp or microstructure mismatch is absorbed by observation noise.
-- Carry is a single combined implied-carry yield. It is not decomposed into dividends, funding, basis, hedging demand, or liquidity.
-- With spot `S`, futures close `F`, continuously compounded rate `r`, and maturity `tau`, observed carry is
-
-  ```text
-  y(t,T) = r - log(F/S) / tau.
-  ```
-
-- The default continuously compounded risk-free rate is `0.014`.
-- Both maturity and OU observation gaps are exchange trading sessions divided by `244`.
-- Sessions are counted over `(observation date, expiry]`; expiry itself has zero remaining sessions.
-- Standard CFFEX stock-index-futures expiry is inferred as the third Friday of the contract month, shifted forward if it is not a trading session.
-- `2024-02-09` is an explicit exchange closure.
-- The shared calibration projects exclude contracts with five or fewer sessions remaining.
-- Implied carries with absolute value above `0.50` are excluded. Stale runs are flagged but retained unless configured otherwise.
-- Expiry overrides are supported through CSV configuration, though the cached runs use inferred expiries.
-- The raw cache is the reproducibility anchor. Use `--refresh` only when intentionally replacing it with a new AkShare snapshot.
-
-Current common cached panel:
-
-- sample: 2022-07-22 through 2026-08-21;
-- 991 spot/curve dates;
-- 3,964 raw futures rows;
-- 52 contracts, `IM2208` through `IM2703`;
-- 3,667 accepted futures observations;
-- 297 excluded observations: 294 near/after expiry and 3 extreme carries.
-
-The cleaned panel retains exclusions and reason codes in a quality-audit output rather than silently discarding them.
-
-## Shared data and calendar implementation
-
-In the calibration projects:
-
-- `data.py` creates a candidate contract universe, downloads/caches AkShare data, validates the futures price field as `close`, aligns spot/futures, retains volume and open interest (`hold`), and assigns the configurable rate.
-- `quality.py` flags missing/nonpositive inputs, duplicates, inconsistent expiries, near-expiry rows, extreme carries, and stale price runs. It returns both the accepted panel and a full audit.
-- `calendar.py` implements third-Friday expiry and signed `(start, end]` session counts. When `chinese_calendar` cannot cover a distant year, the shared calendar falls back to ordinary weekdays. This is a known problem for 2027 maturities and must not be forgotten.
-
-The Demo replaces only the calendar/quality layer with `calendar_utils.py` and `demo_quality.py`. It uses `chinese_calendar` through 2026, an explicit company calendar in `Demo/data/china_exchange_calendar_2027_2028.csv` for 2027–2028, and raises `CalendarCoverageError` outside covered years. It never silently uses the weekday fallback. The 2027–2028 calendar is provisional and must be confirmed or replaced once official CFFEX holidays are available.
-
-Example of the difference: from 2026-08-21 to inferred `IM2703` expiry 2027-03-19, the shared weekday fallback gives 144 sessions, while the Demo company calendar gives 138.
-
-## 1. Baseline one-factor project: `im_ou_carry`
-
-### Model
-
-The latent instantaneous carry follows
-
-```text
-dc_t = kappa (theta - c_t) dt + eta dW_t.
-```
-
-For maturity `tau`, the legacy observation equation is
-
-```text
-y_t(tau) = theta + B(kappa,tau) (c_t - theta) + epsilon,
-B(kappa,tau) = (1 - exp(-kappa*tau)) / (kappa*tau),
-epsilon ~ N(0, sigma_epsilon^2).
-```
-
-`kalman.py` implements stable maturity loadings, exact unequal-gap OU transitions, a stationary initial distribution, and a scalar-state Kalman filter that updates on an arbitrary number of contracts per date. `estimation.py` estimates positive parameters in log space using multi-start L-BFGS-B and computes numerical-Hessian standard errors when stable. `fitting.py` reconstructs fitted carry and futures prices. `diagnostics.py` covers train/test errors, benchmarks, maturity buckets, residual ACF, Ljung–Box/ARCH tests, expiry rolls, curve shapes, and maturity dependence. `pipeline.py` orchestrates acquisition, cleaning, calibration, filtering, rolling fits, evaluation, exports, and charts.
-
-The fitted futures reconstruction is
-
-```text
-F_hat(t,T) = S_t exp[(r_t - y_hat_t(T)) tau].
-```
-
-### Current full-sample result
-
-- `kappa = 7.93313547`
-- `theta = 0.09310201`
-- `eta = 0.80771883`
-- `sigma_epsilon = 0.02078204`
-- log likelihood `7950.93624`
-- half-life `21.3192` trading sessions
-- latest filtered carry `0.16257068`, standard deviation `0.02247358`
-- numerical Hessian stable; optimizer converged
-
-The automatic 80/20 evaluation split is 2025-10-29. Out-of-sample results are about 402.70 bp carry RMSE, 297.11 bp carry MAE, 70.76 futures points RMSE, and 51.89 points MAE.
-
-### Structural limitation
-
-A one-factor OU curve is monotonic toward `theta`; it cannot reproduce genuine humps or U-shapes. About 27.75% of observed curve dates were flagged as hump/U-shape dates. This limitation motivated the two-factor model and remains present in the correlated one-factor experiment.
-
-### Entry points and validation
-
-- CLI: `python -m im_ou_carry --config config.yaml`
-- script: `analysis/run_workflow.py`
-- tests cover calendar conventions, carry construction/auditing, ragged curves, stable transitions/loadings, and seeded parameter recovery.
-
-## 2. Main two-factor project: `im_2factor_ou_carry`
-
-### Model
-
-Instantaneous carry is decomposed into centered independent slow and fast OU factors:
-
-```text
-c_t = theta + x_slow,t + x_fast,t
-dx_j,t = -kappa_j x_j,t dt + eta_j dW_j,t
-0 < kappa_slow < kappa_fast.
-```
-
-The observed curve is
-
-```text
-y_t(tau) = theta
-           + B(kappa_slow,tau) x_slow,t
-           + B(kappa_fast,tau) x_fast,t
-           + epsilon_t(tau).
-```
-
-Opposite-signed slow and fast states can create one meaningful hump or U-shape. The factors are centered around zero so there is only one identified long-run level `theta`. Slow/fast shocks are independent and observation noise is one common Gaussian standard deviation.
-
-`two_factor.py` implements the exact diagonal OU transition, stationary covariance, ragged two-dimensional Kalman filter, posterior states, and whitened sequential innovations. `two_factor_estimation.py` enforces factor ordering by estimating `log(kappa_slow)` and `log(kappa_fast-kappa_slow)`. The mean-reversion gap is capped at 60. `eta_fast_upper_bound` is configurable and defaults to 3.0; this optional argument was added for the Demo without changing the main-project default. `two_factor_fitting.py` attaches prior predictions, posterior fits, futures reconstructions, and both marginal and whitened prediction diagnostics.
-
-The main pipeline also re-estimates the baseline one-factor model on exactly the same data, filter convention, and train/test split. Its model comparisons are therefore like-for-like.
-
-### Current full-sample result
-
-| Parameter | Estimate | Approx. SE |
-|---|---:|---:|
-| `kappa_slow` | 1.24090480 | 0.06550686 |
-| `kappa_fast` | 44.32953559 | 1.34859073 |
-| `theta` | 0.08261738 | 0.00183025 |
-| `eta_slow` | 0.07992823 | 0.00379335 |
-| `eta_fast` | 2.85207915 | 0.10085622 |
-| `sigma_epsilon` | 0.00597024 | 0.00009035 |
-
-- log likelihood `10862.80270`, AIC `-21713.60540`, BIC `-21676.36262`;
-- slow half-life `136.2940` sessions; fast half-life `3.8152` sessions;
-- latest slow state `+0.05990952`, fast state `-0.01614126`;
-- latest instantaneous carry `0.12638564`, standard deviation `0.02746968`;
-- all 12 full-sample optimizer starts reached the same interior solution and the Hessian was stable.
-
-### Comparison with one factor
-
-The two-factor model materially improves fit and out-of-sample futures pricing:
-
-| Metric | Two factor | One factor |
-|---|---:|---:|
-| Log likelihood | 10862.80 | 7950.94 |
-| AIC | -21713.61 | -15893.87 |
-| BIC | -21676.36 | -15869.04 |
-| OOS carry RMSE | 359.77 bp | 402.70 bp |
-| OOS carry MAE | 213.43 bp | 297.11 bp |
-| OOS futures RMSE | 33.16 | 70.76 |
-| OOS futures MAE | 25.00 | 51.89 |
-
-It captured 110 of 275 observed hump/U-shape dates (40%). It improved every maturity bucket but did not eliminate residual autocorrelation or volatility clustering.
-
-### Interpretation and cautions
-
-- The slow factor is plausibly a persistent carry regime or structural hedging-demand factor.
-- The fast factor mainly controls the front end and may reflect temporary basis, roll, liquidity, or hedging pressure.
-- These are statistical interpretations. The model does not establish that DMA activity caused the rise in carry.
-- About 21.49% of dates are flagged as weakly observing the instantaneous state, using a nearest-contract/filtered-uncertainty rule. Large historical fast-state spikes on those dates should not be interpreted literally.
-- Rolling 488-date estimates reveal more boundary pressure than the full sample: `eta_fast` reaches the default cap of 3 in four of five windows. Rolling fits are diagnostics only and do not overwrite the final full-sample calibration.
-
-### Calibration roles
-
-- Full-sample two-factor result: 991 dates, 12 starts, final reported parameters.
-- Rolling diagnostics: five overlapping 488-date windows under current configuration, four two-factor starts per window; used only for stability/boundary analysis.
-- Train/test refits: separate evaluation machinery, not final parameter selection.
-
-### Entry points and validation
-
-- CLI: `python -m im_2factor_ou_carry --config config.yaml`
-- script: `analysis/run_workflow.py`
-- key outputs: `two_factor_parameters.csv`, `two_factor_filtered_states.csv`, `two_factor_fitted_curves.csv`, `calibration_metrics.csv`, `model_information_criteria.csv`, `shape_fit_comparison.csv`, `standardized_innovation_tests.csv`, and `state_observability_diagnostics.csv`.
-- tests cover both one- and two-factor formulas, ragged filtering, factor ordering, hump generation, state recovery, and seeded parameter recovery.
-
-`OPTION_PRICING_WITH_OU_CARRY.md` explains downstream option use. For a CSI 1000/MO index option, compute a maturity-specific fitted carry/forward and use forward-form BSM. For an option directly on an IM futures contract, use the observed futures price in Black-76; applying OU carry again would double-count carry. OU factor volatilities are carry-state volatilities, not equity-option volatility.
-
-## 3. Correlated one-factor experiment: `im_corr_ou_1factor`
-
-### Model and exact futures formula
-
-The reduced-form dynamics are
-
-```text
-dS/S = (r-c)dt + sigma dW_S
-dc   = kappa(theta-c)dt + eta dW_c
-corr(dW_S,dW_c) = rho,
-```
-
-with annual stock volatility fixed at `sigma = 0.25` rather than estimated.
-
-For `tau=T-t`, the exact formula is
-
-```text
-log(F/S) = (r-theta)tau - (c-theta)B(tau)
-           + 0.5 eta^2 C(tau) - rho sigma eta D(tau),
-```
-
-where `B` is the OU integral, `C` is the integral of `B^2`, and `D` is the integral of `B`. The resulting carry observation equation includes both Gaussian convexity and correlation corrections. `model.py` evaluates `B`, normalized loading, `C`, `D`, and the transition/return covariance integral `J` with small-argument series for numerical stability.
-
-`filtering.py` provides:
-
-- curve-only filtering;
-- an exact joint curve/return filter that conditions the next OU prior on the close-to-close stock return using the full state/return covariance;
-- a scalar RTS smoother.
-
-The nuisance historical return drift `mu` is estimated in joint mode. Filtered states are used for live and out-of-sample work; smoothed states are exported only for retrospective analysis.
-
-### Five specifications
-
-1. `legacy_curve`: prior one-factor observation equation, no exact convexity/correlation correction.
-2. `exact_rho0_curve`: exact formula with convexity and fixed `rho=0`.
-3. `exact_corr_curve`: exact curve likelihood with free `rho`.
-4. `exact_rho0_joint`: exact curve-plus-return likelihood with fixed `rho=0`.
-5. `exact_corr_joint`: exact curve-plus-return likelihood with free `rho`.
-
-The legacy model is not the nested `rho=0` restriction because it lacks the exact convexity term. Likelihood-ratio tests are valid only within exact curve mode and within exact joint mode. Raw curve-only and joint likelihoods are not comparable because the joint likelihood includes an extra return stream.
-
-### Main result: correlation is not supported
-
-For the exact correlated joint model:
-
-- `kappa = 7.96673181`
-- `theta = 0.09844654`
-- `eta = 0.80731937`
-- `rho = -0.03276593` with approximate SE `0.03605`
-- `sigma_epsilon = 0.02079370`
-- `mu = 0.16228026`
-- half-life `21.2293` sessions
-
-Correlation diagnostics:
-
-| Diagnostic | Curve only | Joint curve/return |
-|---|---:|---:|
-| Point estimate `rho` | -0.6420 | -0.03277 |
-| Approx. SE | 2.1303 | 0.03605 |
-| 95% profile interval | entire tested `[-0.9,0.9]` | `[-0.10287,0.03783]` |
-| LR statistic for `rho=0` | 0.1134 | 0.8245 |
-| LR p-value | 0.7363 | 0.3639 |
-
-The curve-only likelihood is nearly flat in `rho`; boundary-like negative rolling estimates are identification warnings, not evidence of large negative economic correlation. The joint likelihood is better identified but includes zero, changes sign across rolling windows, and does not improve out-of-sample performance. The exact correlated joint model has about 407.54 bp OOS carry RMSE and 71.28 points OOS futures RMSE, worse than the legacy and fixed-`rho=0` alternatives.
-
-Conclusion: under fixed 25% stock volatility, nonzero stock/carry shock correlation is not empirically justified in the one-factor model, and correlation does not solve the one-factor maturity-shape problem.
-
-### Entry points and validation
-
-- full workflow: `analysis/run_workflow.py`
-- profile-only refresh from saved optima: `analysis/refine_profiles.py`
-- key outputs: `parameters.csv`, `likelihood_ratio_tests.csv`, `rho_profile_likelihood.csv`, `rho_profile_confidence_intervals.csv`, `states_filtered_and_smoothed.csv`, `standardized_innovations.csv`, and `calibration_metrics.csv`.
-- validation covers analytical integrals versus quadrature, small-argument limits, exact Monte Carlo futures pricing, covariance positive-semidefiniteness, ragged/unequal-gap filters, filtered/smoothed separation, data auditing, and seeded joint recovery.
-
-## 4. Carry-put pricing library: `carry_put_pricing`
+- Under constant-carry noise, the original fast-minus-slow kappa-gap cap of 60
+  is restrictive in the 488-date sample.
+- Raising the cap gives an interior gap near 69.7, but improves log likelihood
+  by only about 1.3 and changes the option price by about two points.
+- Gap estimates vary materially across sample windows.
+- Removing short maturities changes the economic model and does not provide a
+  clean solution.
+
+### Maturity-noise study
+
+The study compares constant carry noise, two carry-noise buckets, smooth carry
+plus log-price noise, and direct constant log-futures noise. Five expanding
+calibrations with non-overlapping chronological holdouts support the direct
+log-futures specification. Relative to constant carry noise, pooled results
+improve carry RMSE by about 5.95%, carry MAE by 4.12%, futures RMSE by 5.59%,
+and futures MAE by 7.25%. The log-futures model also produces substantially more
+stable and interior fast-factor estimates.
+
+Because option values and hedge ratios change materially, log-futures noise is
+implemented as an opt-in candidate rather than the production default.
+
+## Carry-put pricing
 
 ### Contract scope
 
-This project prices only the American optional component described in root `put_on_carry.md`:
+The priced optional payoff is
 
-```text
-G_t = S_t [ exp((r-q_0,T)(T-t)) - F_t,T/S_t ]^+.
-```
+$$
+G_t=S_t\left[
+e^{(r-q_{0,T})(T-t)}-\frac{F_{t,T}}{S_t}
+\right]^+,
+$$
 
-The locked inception carry is inferred from the observed initial spot/futures quote:
+where inception carry is locked from the observed quote:
 
-```text
-q_0,T = r - log(F_0,T/S_0)/T.
-```
+$$
+q_{0,T}=r-\frac{\log(F_{0,T}/S_0)}{T}.
+$$
 
-The separate linear futures leg is deliberately excluded from the reported value.
+The separate linear payoff `F(t,T)-F(0,T)` is excluded.
 
-### Exact stochastic-carry forward
+### Exact forward and numerical method
 
-The pricer uses the independent two-factor OU state under a provisional risk-neutral interpretation. With integrated carry `I_t,T = integral_t^T c_u du`, the integral is conditionally Gaussian, so
+For integrated carry
 
-```text
-F_t,T / S_t = exp(r*tau - E[I_t,T] + 0.5 Var[I_t,T]).
-```
+$$
+I_{t,T}=\int_t^T c_u\,du,
+$$
 
-`analytics.py` implements stable OU integral loadings/variances, integrated-carry moments, exact implied carry, and exact forward ratios/prices. `models.py` validates the contract, OU factors, state, GBM inputs, and numerical grid configuration.
+the OU model makes the integral conditionally Gaussian. The exact model forward
+ratio is
 
-### State reduction and numerical method
+$$
+\frac{F_{t,T}}{S_t}
+=\exp\left(r\tau-E_t[I_{t,T}]+\frac12\operatorname{Var}_t(I_{t,T})\right).
+$$
 
-Payoff homogeneity gives `V(t,S,x_s,x_f)=S*v(t,x_s,x_f)`. Under zero spot/carry shock correlation, normalized continuation is
+Payoff homogeneity gives `V(t,S,x_s,x_f)=S*v(t,x_s,x_f)`, removing spot from
+the state grid. `carry_put_pricing/src/carry_put_pricing/pricer.py` performs
+daily backward induction on a two-dimensional factor grid using exact one-step
+OU state/integral moments, Gaussian exponential tilting, separable
+Gauss--Hermite quadrature, and bilinear interpolation. Exercise is allowed once
+per trading session, so this is a daily Bermudan approximation to a continuous
+American option.
 
-```text
-C_t/S_t = E[ exp(-integral_t^(t+dt) c_u du)
-             * v(t+dt, X_t+dt) ].
-```
+Spot volatility is retained as an input but cancels under homogeneity and zero
+spot/carry correlation. The price scales linearly when spot and futures are
+scaled together.
 
-`pricer.py` performs deterministic backward induction over a rectangular slow/fast factor grid using exact one-session OU transition/integral moments, Gaussian exponential tilting, separable Gauss–Hermite quadrature, and bilinear interpolation. Exercise is permitted once per trading session, so this is a daily Bermudan approximation to continuous American exercise.
+### Deltas
 
-Spot volatility remains an explicit `GBMParams` input but cancels from this homogeneous payoff under zero spot/carry correlation. The result scales linearly with spot when spot and futures are scaled together.
+The pricing result includes a fixed-carry scale sensitivity
 
-At inception, contractual exercise is fixed to zero because locked and prevailing observed futures coincide. A model-implied-versus-observed initial futures difference is reported as a fit diagnostic, not converted into exercise value.
+$$
+\Delta_{\mathrm{scale}}=\frac{V}{F_{\mathrm{model}}},
+$$
 
-### Futures-equivalent slow and fast curve deltas
+which co-scales spot and futures at fixed current carry. It is distinct from a
+futures-only partial derivative.
 
-The pricer now reports directional deltas for both OU carry factors, converted into option points per IM futures-price point. For `j` equal to slow or fast,
+For each carry factor,
 
-```text
-Delta_j^F = (partial V / partial x_j) / (partial F_t,T / partial x_j),
-partial F_t,T / partial x_j = -A(kappa_j,T-t) F_t,T,
-A(kappa,tau) = (1-exp(-kappa*tau))/kappa.
-```
+$$
+\Delta_j^F=
+\frac{\partial V/\partial x_j}{\partial F/\partial x_j},
+\qquad
+\frac{\partial F}{\partial x_j}=-A_j(\tau)F.
+$$
 
-Each direction holds spot and the other carry factor fixed. These are two scenario hedge ratios rather than one unique scalar delta: a single futures quote cannot identify both latent factor states, and one futures position cannot simultaneously neutralize arbitrary slow and fast shocks.
+These are one-factor-at-a-time directional ratios. They are calculated through
+differentiated backward induction and checked with a local grid bump-and-value
+calculation. A single futures contract generally cannot neutralize both factor
+exposures simultaneously.
 
-Two methods are implemented and compared:
+### Joint hedge with two futures
 
-1. **Differentiated backward induction (`pathwise_delta`).** The derivative follows the exercise policy selected by the original Snell envelope. At an exercise node it uses the exercise-payoff derivative; at a continuation node it uses the differentiated continuation recursion. It does not solve a second optimal-stopping problem for the derivative. Exact exercise/continuation ties use the continuation-side derivative.
-2. **Local grid bump-and-value (`bump_and_value_delta`).** The time-zero value grid is evaluated one local grid step above and below the initial state along one factor axis. The option-value change is divided by the change in the exact model futures price over those same states.
+`carry_put_pricing/src/carry_put_pricing/hedging.py` defines
+`HedgeFuturesContract`, `TwoFuturesHedgeResult`, and
+`calculate_two_futures_hedge`. For two observed futures quotes,
 
-The locked inception carry `q_0,T` is frozen under both calculations. Recomputing it from a bumped futures quote would re-strike the contract and would not be a valid Greek. Both conversions use the exact model futures mapping, not the observed/model initial-basis residual.
+$$
+G=
+\begin{bmatrix}
+-F_1A_s(h_1)&-F_2A_s(h_2)\\
+-F_1A_f(h_1)&-F_2A_f(h_2)
+\end{bmatrix}.
+$$
 
-For the fixed `IM2609` base-grid example:
+The option deltas solve
 
-| Factor direction | Pathwise delta | Bump-and-value delta | Absolute difference |
-|---|---:|---:|---:|
-| Slow | -0.42744969 | -0.42793891 | 0.00048923 |
-| Fast | -0.20766012 | -0.20839806 | 0.00073794 |
+$$
+G\Delta=
+\begin{bmatrix}V_s\\V_f\end{bmatrix},
+$$
 
-Increasing either carry factor raises the carry-put value and lowers the futures price, so both futures-equivalent deltas are negative. For a long carry put, the corresponding one-direction-at-a-time delta hedge is to buy about `0.42745` futures units for a pure slow shock or `0.20766` futures units for a pure fast shock, before applying contract multipliers and position sizes.
+and the positions that hedge a long option are
 
-Across the coarse/base/fine grids, the pathwise slow deltas are approximately `-0.42831`, `-0.42745`, and `-0.42799`; the fast deltas are approximately `-0.20886`, `-0.20766`, and `-0.20836`. This is a numerical convergence diagnostic, not economic model uncertainty. The base comparison is exported to `outputs/curve_delta_comparison.csv`, and the structured results are also available as `PricingResult.slow_curve_delta` and `PricingResult.fast_curve_delta`.
+$$
+n=-\Delta,
+\qquad
+Gn=-\begin{bmatrix}V_s\\V_f\end{bmatrix}.
+$$
 
-### Fixed-carry scale delta
+The result reports both deltas and hedge positions, the determinant, condition
+number, angular separation, and post-hedge residual factor exposures. Numerical
+rank is checked with singular values. If the matrix is singular, a
+`RuntimeWarning` is emitted and the deltas and positions are returned as
+`None`. Near-singular pairs can still generate unstable positions and should be
+judged using the conditioning diagnostics.
 
-The pricer also reports a separate proportional scale sensitivity:
+Observed hedge-futures closes are used. The standalone example and Demo obtain
+their hedge maturities from the strict Demo calendar. Contract multipliers,
+integer rounding, transaction costs, automatic pair selection, rolling, and
+hedge backtesting are not implemented.
 
-```text
-fixed_carry_scale_delta = V / F_model.
-```
+The baseline pricing example on 2026-08-21 uses an `IM2609` option and
+`IM2609`/`IM2703` hedge futures. With strict maturities of 20/138 sessions, the
+continuous long-option hedge is approximately +0.153757/+0.055513 futures
+units. The result is exported to
+`carry_put_pricing/outputs/two_futures_hedge.csv`.
 
-This derivative follows the path `S(lambda)=lambda*S` and `F(lambda)=lambda*F`, holding the futures/spot ratio and therefore current implied carry fixed. The locked inception carry and both OU factor states are also fixed. It is positive and measures an overall index-level co-move; it is not the futures-only partial derivative with spot fixed and does not replace either slow or fast carry-curve delta. The field is retained in structured pricing results but is intentionally omitted from the current Demo notebook presentation because that presentation focuses on `q` shocks.
+## Demo
 
-### Fixed full-sample example
-
-The script `analysis/run_example.py` reads the latest full-sample two-factor parameters/states and selects the valid nearest contract from saved curves. Current example:
-
-- valuation 2026-08-21, `IM2609`, expiry 2026-09-18, 20 sessions;
-- spot `7601.804`, observed futures `7527.0`, locked carry `0.13464618`;
-- base grid 301 x 401, width six stationary standard deviations, quadrature order 43;
-- optional-component price `36.2794369` points (`0.477248%` of spot);
-- model initial futures `7527.39615`, model-minus-observed `+0.39615` points;
-- base-minus-fine grid difference about `0.00501` points;
-- quadrature orders 39–47 span about `0.00517` points.
-- fixed-carry scale delta: `0.00481965293` using the model initial futures price;
-- slow futures-equivalent delta: pathwise `-0.42744969`, bump-and-value `-0.42793891`;
-- fast futures-equivalent delta: pathwise `-0.20766012`, bump-and-value `-0.20839806`.
-
-Tests cover stable analytical moments, seeded moment simulation, exact-forward regression values, zero one-session optionality, volatility invariance, spot scaling, deterministic flat carry, initial-basis reporting, delta sign and futures conversion, agreement between the two curve-delta methods, zero delta for a one-session zero-value contract, hedge-ratio invariance under proportional spot/futures scaling, and the fixed-carry `V/F_model` scale-delta identity.
-
-### Economic limitations
-
-- Historically estimated OU dynamics are only provisionally treated as risk-neutral.
-- Slow/fast and spot/carry shocks are independent.
-- Exercise is daily, not continuous.
-- Rate is constant.
-- Interpolation is clipped at remote grid boundaries.
-- The separate linear futures leg and settlement mechanics are not priced.
-
-A production valuation needs risk-neutral OU calibration or explicit carry risk premia. Useful benchmarks/extensions include Longstaff–Schwartz, risk-neutral parameter scenarios, and defensible nonzero correlations.
-
-## 5. Configurable end-to-end Demo: `Demo`
-
-### Purpose and current flow
-
-The Demo accepts:
+The Demo exposes these inputs through Python, CLI, and the notebook:
 
 - valuation date;
-- number of accepted curve dates in the calibration sample, including valuation date;
-- selected IM futures contract.
+- number of accepted calibration curve dates;
+- option futures contract;
+- exactly two hedge futures contracts;
+- observation-noise model;
+- kappa-gap and fast-volatility bounds;
+- output directory.
 
-It then:
+Its flow is:
 
-1. loads the shared raw cache only through the requested valuation date;
-2. rebuilds expiry/maturity/carry using the strict Demo calendar;
-3. selects exactly the requested number of accepted curve dates ending on valuation date;
-4. estimates close-to-close historical spot volatility over those dates;
-5. recalibrates the independent two-factor OU model;
-6. filters the latest state and validates the selected contract quote/expiry;
-7. prices the option-only carry put and numerical convergence grids;
-8. profiles fixed `eta_fast`, re-optimizing the other five parameters and repricing at each grid point;
-9. exports CSV/JSON/PNG results and populates the narrative notebook.
+1. load cached spot/futures data only through the valuation date;
+2. rebuild expiries and maturities with the strict calendar;
+3. select the requested number of accepted curve dates;
+4. estimate historical spot volatility;
+5. calibrate and filter the two-factor OU model;
+6. validate the option and hedge futures quotes;
+7. price the optional component and calculate directional and joint deltas;
+8. run grid/quadrature diagnostics;
+9. run the fixed-`eta_fast` profile;
+10. export CSV, JSON, and chart artifacts.
 
-Important code:
+Important files:
 
-- `calibration.py`: sample selection, volatility, 12-start two-factor calibration, state filtering, selected quote, metrics, and exports.
-- `calendar_utils.py` and `demo_quality.py`: strict extended calendar and local carry cleaning.
-- `option_pricing.py`: converts calibration output into pricing inputs, runs base/coarse/fine and quadrature convergence, and exports results.
-- `profile_analysis.py`: fixed-`eta_fast` profile; the other five parameters are optimized at every grid point and the option is repriced.
-- `demo_workflow.py`: CLI, orchestration, charts, warnings, and `demo_summary.json`.
-- `Carry_Put_Demo.ipynb`: narrative interface; its setup cell deliberately clears Demo-local modules from `sys.modules` before importing, preventing stale Jupyter module-cache errors. The option-pricing section is followed by an executed slow/fast futures-equivalent curve-delta table. It displays only carry-factor deltas and deliberately omits the fixed-carry scale delta.
+- `Demo/calibration.py`: sample construction, calibration, states, and metrics.
+- `Demo/calendar_utils.py`: strict expiry and session calendar.
+- `Demo/option_pricing.py`: pricing inputs, convergence, hedge inputs, and
+  exports.
+- `Demo/profile_analysis.py`: conditional fixed-`eta_fast` likelihood and price
+  profile.
+- `Demo/demo_workflow.py`: CLI, orchestration, warnings, charts, and summary.
+- `Demo/Carry_Put_Demo.ipynb`: narrative interface.
 
-### Current latest Demo snapshot
+The latest generated notebook configuration is 2026-08-10, 488 dates, option
+contract `IM2609`, hedge contracts `IM2609`/`IM2703`,
+`constant_log_futures`, kappa-gap cap 90, and `eta_fast` cap 6. Its current
+optional-component price is approximately 38.27465 points. The continuous
+long-option hedge is approximately +0.221144 `IM2609` and +0.046084 `IM2703`;
+the hedge-matrix condition number is about 14.44. Treat these as snapshot values
+that change with the selected date, sample, contract, and model.
 
-The executable defaults in `calibration.py` remain 2026-08-21 / 244 dates / `IM2609`, and `Demo/README.md` contains an older notebook example. However, the actual current notebook inputs and generated `Demo/outputs/demo_summary.json` are:
+The fixed-`eta_fast` profile currently runs unconditionally and is expensive.
+For an interior log-futures estimate with a stable Hessian, it is mainly a
+research diagnostic and could be made optional. The current notebook also has a
+known display-path issue: some Part 5/6 image cells load charts from the
+hard-coded baseline `Demo/outputs` directory instead of the configured
+`OUTPUT_DIR`, so a log-futures table can be shown beside an old constant-carry
+chart.
 
-```text
-VALUATION_DATE = 2026-08-10
-SAMPLE_SIZE = 488
-FUTURES_CONTRACT = IM2612
-```
+## Entry points
 
-Treat that 2026-08-10 snapshot as the latest generated Demo state unless the user reruns it with new inputs.
-
-Current calibration:
-
-- sample 2024-08-05 through 2026-08-10;
-- 488 curve dates, 1,807 accepted observations, 28 contracts, 487 returns;
-- historical spot volatility `0.27710856`;
-- `kappa_slow = 2.57648937`;
-- `kappa_fast = 62.57648937`;
-- `theta = 0.10862241`;
-- `eta_slow = 0.11495544`;
-- `eta_fast = 3.88517353`;
-- `sigma_epsilon = 0.00592794`;
-- log likelihood `5348.42993`;
-- carry RMSE `46.7809` bp and futures RMSE `10.0540` points (posterior/in-sample fit metrics);
-- optimizer converged and Hessian was stable.
-
-The Demo passes `eta_fast_upper_bound=6`, so `eta_fast` is interior. Relative to fixing `eta_fast=3`, the cap-6 optimum gains about 12.19 log-likelihood units. The grid-supported 95% profile region is about 3.75–4.00 and maps to option prices about 62.60–65.58.
-
-The mean-reversion gap `kappa_fast-kappa_slow` equals its separate upper bound of 60. Raising the volatility cap solved one boundary but exposed continued pressure toward faster mean reversion. This is a model-risk/identification warning, especially for short-dated pricing, not proof that L-BFGS-B failed.
-
-Current `IM2612` option result:
-
-- expiry 2026-12-18, 88 sessions;
-- spot `7733.9`, futures `7413.2`, locked carry `0.13142796`;
-- option-only price `63.85753` points (`0.825683%` of spot);
-- model initial futures `7421.91640`, model-minus-observed `+8.71640` points;
-- slow futures-equivalent delta: pathwise `-0.33235550`, bump-and-value `-0.33238170`;
-- fast futures-equivalent delta: pathwise `-0.01406941`, bump-and-value `-0.01404718`;
-- base-minus-fine difference `0.04413` points;
-- nearby quadrature span `0.00191` points.
-
-These numerical checks do not measure economic model uncertainty. The profile range is conditional on the fitted model and is not a full valuation confidence interval.
-
-### Running the Demo
-
-From `Demo`:
+From the `im_2factor_ou_carry` folder, run the main calibration with either
+configuration:
 
 ```powershell
-& 'D:\miniforge3\envs\spyder-env\python.exe' -B demo_workflow.py `
-  --valuation-date 2026-08-10 `
-  --sample-size 488 `
-  --futures-contract IM2612
+python -m im_2factor_ou_carry --config config.yaml
+python -m im_2factor_ou_carry --config config_log_futures.yaml
 ```
 
-The fixed-eta profile can take several minutes because the base calibration uses 12 starts and each fixed-eta point re-optimizes from four starts.
+Standalone carry-put example:
 
-Focused Demo tests cover fixed/flexible sample selection, invalid sample sizes, selected quotes, expiry inference, strict 2027 calendar behavior, historical volatility, and locked-carry construction.
+```powershell
+python -B carry_put_pricing/analysis/run_example.py `
+  --hedge-futures-contracts IM2609 IM2703
+```
 
-## Environments, dependencies, and validation history
+Demo example:
 
-The modelling projects require Python 3.10+ plus NumPy, pandas, SciPy, statsmodels, matplotlib, PyYAML, and AkShare. The calendars also rely on `chinese_calendar` in the working environments even though it is not listed in every `pyproject.toml`. The pricer needs NumPy, pandas, and SciPy.
+```powershell
+python -B Demo/demo_workflow.py `
+  --valuation-date 2026-08-10 `
+  --sample-size 488 `
+  --futures-contract IM2609 `
+  --hedge-futures-contracts IM2609 IM2703 `
+  --observation-noise-model constant_log_futures `
+  --kappa-gap-upper-bound 90 `
+  --eta-fast-upper-bound 6 `
+  --output-dir Demo/outputs_log_futures
+```
 
-Two environments appear in the project history:
+The currently available validated interpreter is
+`D:\miniconda3\envs\GuoYuan\python.exe`. Required packages include NumPy,
+pandas, SciPy, statsmodels, matplotlib, PyYAML, AkShare, and
+`chinese_calendar`. Do not install packages from Anaconda defaults; use
+conda-forge if an installation is genuinely required.
 
-- `D:\miniforge3\envs\spyder-env\python.exe`: agreed main environment and current Demo command.
-- `D:\miniconda3\envs\GuoYuan\python.exe`: used to validate the correlated project and isolated carry-put pricer.
+## Validation and source-of-truth hierarchy
 
-Do not install from Anaconda defaults. If a package is genuinely required, the project convention is conda-forge only. No new package was needed for the final Demo/pricer work.
+Current focused validation includes:
 
-Historical validation recorded in `session_log.md`:
+- `carry_put_pricing`: 12 passing tests;
+- `Demo`: 6 passing tests;
+- production two-factor project: 17 tests at the latest recorded full
+  integration checkpoint;
+- maturity-noise study: 8 tests at its integration checkpoint;
+- boundary study: 4 tests at its integration checkpoint.
 
-- main two-factor project: 11 passing tests at the completed-project checkpoint, clean Ruff and compilation checks;
-- correlated one-factor project: 16 passing tests, 21 parsed Python files, 22 nonempty CSVs, 10 charts;
-- carry-put pricer: 10 passing tests after adding the slow/fast futures-equivalent deltas and fixed-carry scale delta; Ruff passed and the fixed example was regenerated on 2026-09-01;
-- Demo: five focused tests plus Ruff historically; the full notebook executed successfully on 2026-09-01 after adding the curve-delta section, and the current generated snapshot was refreshed.
-- fast-factor boundary study: focused tests and Ruff passed; the complete cap/window/short-end/profile run is checkpointed under `fast_factor_boundary_study/outputs`.
-- maturity-noise study: five focused tests and Ruff passed on 2026-09-04; the complete 12-start train/full comparison is checkpointed under `maturity_noise_study/outputs/fits`.
+Pricing tests cover analytical moments, exact forwards, zero optionality,
+homogeneity, volatility invariance, directional delta conversion, bump checks,
+two-factor hedge neutrality, and singular-pair behavior. Demo tests cover
+sample selection, quotes, expiry inference, strict 2027 calendar behavior,
+historical volatility, and strict hedge maturities.
 
-Because code and generated Demo outputs have since changed, rerun the relevant current test suites before claiming a new final validation.
-
-## Generated outputs and source-of-truth hierarchy
-
-Use this order when facts conflict:
+When facts conflict, use this order:
 
 1. current executable code and configuration;
-2. current generated JSON/CSV outputs for the exact run being discussed;
-3. `session_log.md` for decisions, interpretation, and validation history;
-4. folder-level READMEs for stable usage context.
+2. generated JSON/CSV outputs for the exact run;
+3. `session_log.md` for historical decisions and validation context;
+4. folder READMEs for stable usage guidance.
 
-Generated outputs are snapshots, not universal constants. In particular, Demo outputs depend on notebook/CLI inputs and can differ from module defaults or README examples.
+Generated files are run-specific snapshots, not universal constants. Some
+historical JSON metadata contains stale absolute paths; use paths relative to
+the repository root.
 
-Several saved JSON fields contain stale absolute directories from earlier workspace locations, including spellings such as `Curry_curve_calibration` and older `D:\LuJingjian\...` paths. Use paths relative to the current repository root instead of trusting those metadata strings. Current numerical values remain useful when the corresponding data/run snapshot is identified.
+## Main limitations and future work
 
-Do not edit generated outputs merely to normalize paths unless the user asks for a rerun or cleanup.
-
-## Main unresolved modelling issues
-
-1. **Historical versus risk-neutral dynamics.** The pricing prototype uses historically estimated OU parameters as if they were under `Q`. Production pricing requires risk-neutral calibration or explicit carry-factor risk premia.
-2. **Fast-factor identification and observation model.** Five holdouts support constant log-futures noise and its production candidate has an interior kappa gap and `eta_fast`. However, downstream option values and hedges change materially, so the candidate remains opt-in pending business/risk review. Very short-dated option values remain especially sensitive.
-3. **Residual dynamics.** Even two factors leave autocorrelation and volatility clustering; maturity-dependent or time-varying observation noise, stochastic volatility, or regimes may be needed.
-4. **Correlation evidence.** The current one-factor data do not support nonzero stock/carry correlation. Curve-only `rho` is essentially unidentified; joint `rho` includes zero and does not improve forecasts.
-5. **Calendar authority.** Shared code silently falls back to weekdays beyond holiday-package coverage. The Demo is stricter but its 2027–2028 calendar is provisional.
-6. **Market conventions.** The rate is constant, expiries are rule-derived, and closes are treated as synchronized.
-7. **Curve flexibility.** One factor cannot create humps/U-shapes; two factors usually support only one meaningful turning point.
-8. **Option scope.** The carry-put result excludes the linear futures leg, uses daily exercise, zero correlations, and clipped state-grid interpolation.
-
-## Sensible next steps
-
-The clean next diagnostics discussed in the session are:
-
-- review and approve the material side-by-side option-value and hedge changes before considering any default switch to constant log-futures noise;
-- resolve the production calendar policy for 2027+ maturities so calibration, Demo, and research use an agreed session schedule;
-- build an independent Longstaff–Schwartz benchmark for the deterministic-grid carry-put pricer;
-- perform risk-neutral OU sensitivity scenarios or calibrate carry risk premia;
-- after the observation equation is settled, consider time-varying observation noise, stochastic volatility, or regime structure for the remaining residual dynamics;
-- replace the provisional 2027–2028 company calendar with the official CFFEX schedule when available;
-- if revisiting correlation, test sensitivity to fixed stock volatility and separate historical `(kappa_P, theta_P)` from pricing `(kappa_Q, theta_Q)` rather than interpreting the current curve-only estimate.
-
-## Practical instructions for a future AI
-
-- Begin by reading this file, `session_log.md`, and `git status`.
-- Do not read or edit the root `README.md` unless the user explicitly asks; it is user-owned work in progress. In particular, preserve the user's existing `## Delta部分` wording and the appended `### 数值计算方法` explanation unless a future request explicitly targets them.
-- Preserve all unrelated changes and generated artifacts.
-- Use cached raw data unless the user explicitly wants a refreshed download.
-- Keep trading-session carry time, option/volatility time, and discounting time explicit; do not silently switch to calendar-day/365 conventions.
-- Never use settlement in place of the IM close.
-- Never insert instantaneous carry as one constant rate for every option maturity.
-- For an option on an IM futures contract, do not apply carry again to the observed futures price.
-- Distinguish posterior fitted residuals from genuine one-step-prior out-of-sample prediction errors.
-- Distinguish filtered states (live/forecast use) from smoothed states (historical-only use).
-- Treat parameter-bound solutions and flat likelihood profiles as identification/model-risk diagnostics, not automatically as optimizer failures or economic evidence.
-- For maturity-noise comparisons, use the Jacobian-adjusted log-futures likelihood when comparing likelihoods or information criteria with carry-space models, and preserve the predict-before-update OOS convention.
-- Treat `maturity_noise_study/RESULTS.md` and its exact generated CSV/JSON outputs as the source for the 2026-09-04 noise comparison; do not infer that production already uses constant log-futures noise.
-- When reporting a Demo value, state the valuation date, sample size, contract, calendar source, OU parameter set, and whether only the optional component is included.
+1. Historical OU dynamics are provisionally treated as risk-neutral dynamics.
+   Production pricing needs risk-neutral calibration or explicit factor risk
+   premia.
+2. Constant log-futures noise improves forecasts and parameter stability but
+   materially changes option values and hedges, so it remains opt-in.
+3. Residual autocorrelation and volatility clustering remain after the
+   two-factor fit.
+4. The 2027--2028 Demo calendar is provisional; shared production code still
+   has a weekday fallback outside package coverage.
+5. Rates are constant, expiries are rule-derived, and closes are assumed
+   synchronized.
+6. Pricing uses daily exercise, zero spot/carry and slow/fast correlations, and
+   clipped state-grid interpolation.
+7. The joint hedge removes only local first-order model-factor exposure. It
+   does not remove basis, parameter, nonlinear, liquidity, or execution risk.
+8. Hedge backtesting, multipliers, rounding, costs, rolling, and automatic
+   maturity-pair selection remain to be implemented.
+9. Useful pricing extensions include an independent Longstaff--Schwartz
+   benchmark and risk-neutral parameter scenarios.

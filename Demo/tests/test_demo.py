@@ -3,8 +3,10 @@ from __future__ import annotations
 from math import isclose, log, sqrt
 from pathlib import Path
 import sys
+from types import SimpleNamespace
 
 import numpy as np
+import pandas as pd
 
 
 DEMO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +27,7 @@ from calendar_utils import (  # noqa: E402
     maturity_diagnostics,
     trading_days_between,
 )
+from option_pricing import hedge_futures_inputs  # noqa: E402
 
 
 def test_fixed_244_date_sample_and_im2609_quote() -> None:
@@ -90,3 +93,34 @@ def test_historical_volatility_and_locked_carry() -> None:
     locked = RISK_FREE_RATE - log(quote["futures_price"] / quote["spot"]) / maturity
     assert isclose(locked, 0.13464618422090385, rel_tol=0.0, abs_tol=1.0e-12)
     assert np.isfinite(locked)
+
+
+def test_hedge_futures_inputs_use_strict_demo_calendar() -> None:
+    valuation_date = pd.Timestamp("2026-08-21")
+    fitted_panel = pd.DataFrame(
+        [
+            {
+                "date": valuation_date,
+                "contract": "IM2609",
+                "expiry": pd.Timestamp("2026-09-18"),
+                "sessions_to_expiry": 20,
+                "futures_price": 7527.0,
+            },
+            {
+                "date": valuation_date,
+                "contract": "IM2703",
+                "expiry": pd.Timestamp("2027-03-19"),
+                "sessions_to_expiry": 138,
+                "futures_price": 7117.0,
+            },
+        ]
+    )
+    calibration = SimpleNamespace(
+        quote=pd.Series({"date": valuation_date}),
+        fitted_panel=fitted_panel,
+    )
+    first, second = hedge_futures_inputs(calibration, ("im2609", "IM2703"))
+    assert first.contract == "IM2609"
+    assert first.sessions_to_expiry == 20
+    assert second.contract == "IM2703"
+    assert second.sessions_to_expiry == 138
