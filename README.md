@@ -25,10 +25,10 @@ $$
 文章以下部分则将介绍此文件夹中具体包含了哪些文件，以及我们如何处理上述期权定价及delta计算。
 
 # 总览
-本项目先探究了应使用何种模型对分红率$q$进行建模，最终选定二因子快慢 $\kappa$ vasicek模型；然后对上述期权进行了定价，并探究如何对其进行$\Delta$对冲；最后给出了一些下一步工作应该做的方向。
+本项目先探究了应使用何种模型对分红率$q$进行建模，最终选定二因子快慢 $\kappa$ vasicek模型；然后对上述期权进行了定价，并探究如何对其进行delta对冲；上述过程都被总结到了`Demo`中的`Carry_put_Demo.ipynb`文件中；最后在本文档中给出了一些下一步工作应该做的方向。
 
 # 结构
-本项目包含7个文件夹，其中`im_ou_carry`, `im_2factor_ou_carry`和`im_corr_ou_1factor`是分红率（即$q$，这里被叫做`carry rate`）模型；`carry_put_pricing`是期权定价模型，其中对应的分红率模型为`im_2factor_ou_carry`；`fast_factor_boundary_study`和`maturity_noise_study`是为进一步更好拟合`im_2factor_ou_carry`做的下一步研究；`Demo`则是一个简单的场景演示，里面包含了从拟合分红率到期权定价的全过程。
+本项目包含7个文件夹，其中`im_ou_carry`, `im_2factor_ou_carry`和`im_corr_ou_1factor`是分红率（即$q$，这里被叫做`carry rate`）模型；`carry_put_pricing`是期权定价模型，其中对应的分红率模型为`im_2factor_ou_carry`；`fast_factor_boundary_study`和`maturity_noise_study`是为进一步更好拟合`im_2factor_ou_carry`做的下一步研究；`Demo`则是一个简单的场景演示，里面包含了从拟合分红率、期权定价到delta计算的全过程。
 
 同时项目内还包含一个`summary_for_AI.md`文件，此文件可以帮助AI更好地理解项目结构和内容。在使用AI的时候直接把此文件交给它阅读即可。
 
