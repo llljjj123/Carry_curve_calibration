@@ -106,6 +106,104 @@ class _StepMoments:
     fast_integral_loading: float
 
 
+@dataclass(frozen=True)
+class ExistingCarryPutResult:
+    """Current mark and stopping decision for the original, unchanged contract.
+
+    Continuation uses the model curve; immediate exercise uses the observed
+    futures quote. Factor derivatives on exercise use observed futures loadings.
+    At maturity the contractual convergence payoff is zero, irrespective of a
+    close-price basis. Sensitivities are in option points per factor unit.
+    """
+
+    price: float
+    continuation_value: float
+    exercise_value: float
+    exercise_now: bool
+    expired: bool
+    locked_carry: float
+    remaining_sessions: int
+    slow_factor_sensitivity: float
+    fast_factor_sensitivity: float
+    model_futures: float
+    futures_model_error: float
+
+
+def price_american_carry_put(
+    contract: CarryPutContract,
+    ou_params: TwoFactorOUParams,
+    initial_state: FactorState,
+    gbm_params: GBMParams,
+    *,
+    numerical: NumericalConfig | None = None,
+    hedge_futures: tuple[HedgeFuturesContract, HedgeFuturesContract] | None = None,
+) -> PricingResult:
+    """Price a new contract; immediate inception exercise is exactly zero."""
+    return _price_continuation(
+        contract, ou_params, initial_state, gbm_params,
+        numerical=numerical, hedge_futures=hedge_futures,
+    )
+
+
+def price_existing_carry_put(
+    contract: CarryPutContract,
+    ou_params: TwoFactorOUParams,
+    current_state: FactorState,
+    gbm_params: GBMParams,
+    *,
+    elapsed_sessions: int,
+    current_spot: float,
+    current_futures: float,
+    numerical: NumericalConfig | None = None,
+) -> ExistingCarryPutResult:
+    """Revalue without resetting inception carry or the original expiry.
+
+    The rate is held fixed for the contract's life. The tolerance is in
+    normalized (per spot unit) value, matching NumericalConfig.
+    """
+    if (isinstance(elapsed_sessions, bool) or int(elapsed_sessions) != elapsed_sessions
+            or not 0 <= elapsed_sessions <= contract.sessions_to_expiry):
+        raise ValueError("elapsed_sessions must be an integer within the contract life")
+    if not all(np.isfinite(p) and p > 0 for p in (current_spot, current_futures)):
+        raise ValueError("Current spot and futures must be positive and finite")
+    if elapsed_sessions == 0 and (
+        current_spot != contract.initial_spot or current_futures != contract.initial_futures
+    ):
+        raise ValueError("Inception quotes must match the original contract")
+    remaining = contract.sessions_to_expiry - int(elapsed_sessions)
+    locked = contract.locked_carry(gbm_params.risk_free_rate)
+    if remaining == 0:
+        return ExistingCarryPutResult(
+            0.0, 0.0, 0.0, False, True, locked, 0, 0.0, 0.0,
+            current_spot, current_spot - current_futures,
+        )
+    config = numerical or NumericalConfig()
+    current = CarryPutContract(
+        current_spot, current_futures, remaining, contract.periods_per_year
+    )
+    continuation = _price_continuation(
+        current, ou_params, current_state, gbm_params,
+        numerical=config, locked_carry_override=locked,
+    )
+    exercise = (0.0 if elapsed_sessions == 0 else max(
+        current_spot * exp((gbm_params.risk_free_rate - locked) * current.maturity)
+        - current_futures, 0.0,
+    ))
+    exercise_now = exercise > continuation.price + config.exercise_tolerance * current_spot
+    if exercise_now:
+        slow = ou_integral_loading(ou_params.kappa_slow, current.maturity) * current_futures
+        fast = ou_integral_loading(ou_params.kappa_fast, current.maturity) * current_futures
+    else:
+        slow = continuation.slow_curve_delta.pathwise_option_factor_sensitivity
+        fast = continuation.fast_curve_delta.pathwise_option_factor_sensitivity
+    return ExistingCarryPutResult(
+        exercise if exercise_now else continuation.price,
+        continuation.price, exercise, exercise_now, False, locked, remaining,
+        slow, fast, continuation.model_initial_futures,
+        continuation.initial_futures_model_error,
+    )
+
+
 def _step_moments(params: TwoFactorOUParams, dt: float) -> _StepMoments:
     slow_decay = exp(-params.kappa_slow * dt)
     fast_decay = exp(-params.kappa_fast * dt)
@@ -350,7 +448,7 @@ def _futures_equivalent_curve_delta(
     )
 
 
-def price_american_carry_put(
+def _price_continuation(
     contract: CarryPutContract,
     ou_params: TwoFactorOUParams,
     initial_state: FactorState,
@@ -358,6 +456,7 @@ def price_american_carry_put(
     *,
     numerical: NumericalConfig | None = None,
     hedge_futures: tuple[HedgeFuturesContract, HedgeFuturesContract] | None = None,
+    locked_carry_override: float | None = None,
 ) -> PricingResult:
     """Price the daily-exercisable carry put by exact-transition backward induction.
 
@@ -386,7 +485,10 @@ def price_american_carry_put(
     )
     nodes, weights = hermgauss(config.quadrature_order)
     step = _step_moments(ou_params, dt)
-    locked_carry = contract.locked_carry(gbm_params.risk_free_rate)
+    locked_carry = (
+        contract.locked_carry(gbm_params.risk_free_rate)
+        if locked_carry_override is None else locked_carry_override
+    )
 
     # At maturity both forward-growth terms are one, so the payoff is zero.
     next_values = np.zeros((len(slow_grid), len(fast_grid)))

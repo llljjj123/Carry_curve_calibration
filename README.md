@@ -190,15 +190,15 @@ $$
 
 程序允许每个交易日行权，因此严格来说是对连续行权美式期权的逐日Bermudan近似。
 
-## Delta部分
-### Delta计算
-假设期权价格为$V$,对快慢$\kappa$中的$x_s$和$x_f$各做偏导数，得到：
+## 因子Delta部分
+### 单期货对冲
+称呼期权对快慢两因子的偏导为因子Delta，假设期权价格为$V$,对快慢$\kappa$中的$x_s$和$x_f$各做偏导数，得到：
 $$
-\Delta_{x,s} = \frac{\partial V}{\partial x_s}
+V_s = \frac{\partial V}{\partial x_s}
 $$
 
 $$
-\Delta_{x,f} = \frac{\partial V}{\partial x_f}
+V_f = \frac{\partial V}{\partial x_f}
 $$
 转换为以期货$F$计算，我们有
 $$
@@ -209,6 +209,111 @@ $$
 
 
 在计算一个$\Delta$时，保持$S_t$、$q_{0,T}$以及另一个$x$不变。代码用两种方法计算$\Delta_j^F$。
+
+对于使用单一期货对冲，我们还可以选择对冲头寸$n$，使下一交易日期间由快慢因子随机扰动引起的组合一阶损益方差最小。这里最小化的是**残余因子风险对应的损益方差**，而不是因子过程本身的方差或协方差矩阵$Q$。
+
+定义
+$$
+b=
+\begin{bmatrix}
+V_s \\ V_f
+\end{bmatrix},
+\qquad
+g=
+\begin{bmatrix}
+F_{x_s}\\F_{x_f}
+\end{bmatrix}
+=
+-F
+\begin{bmatrix}
+A_s(\tau)\\A_f(\tau)
+\end{bmatrix}.
+$$
+
+其中$\tau$为所选对冲期货的剩余期限。以下统一考虑**持有一份期权多头**，$n$表示实际持有的期货对冲头寸，正值为买入，负值为卖出；采用单位点值和连续头寸，暂不考虑合约乘数与整数取整。这与下文双期货方程$b+Gn=0$的符号约定一致。
+
+#### 单日OU创新协方差$Q$
+
+对因子$j\in\{s,f\}$，设
+
+$$
+dx_{j,t}=-\kappa_jx_{j,t}\,dt+\eta_j\,dW_{j,t}.
+$$
+
+令一个交易日对应的年化时间为$\Delta t=1/244$，精确离散转移为
+
+$$
+x_{j,t+\Delta t}=e^{-\kappa_j\Delta t}x_{j,t}+\varepsilon_{j,t},
+\qquad
+E_t[\varepsilon_{j,t}]=0,
+$$
+
+$$
+\operatorname{Var}_t(\varepsilon_{j,t})
+=\frac{\eta_j^2}{2\kappa_j}
+\left(1-e^{-2\kappa_j\Delta t}\right).
+$$
+
+$e^{-\kappa_j\Delta t}x_{j,t}$是给定当前因子状态后的可预测部分；$\varepsilon_{j,t}$是这一交易日新增的、不可预测的随机扰动，称为OU创新。当前模型假设快慢因子的布朗运动独立，因此
+
+$$
+\varepsilon_t=
+\begin{bmatrix}\varepsilon_{s,t}\\\varepsilon_{f,t}\end{bmatrix},
+\qquad
+Q=\operatorname{Cov}_t(\varepsilon_t)=
+\begin{bmatrix}
+\dfrac{\eta_s^2}{2\kappa_s}\left(1-e^{-2\kappa_s\Delta t}\right)&0\\
+0&\dfrac{\eta_f^2}{2\kappa_f}\left(1-e^{-2\kappa_f\Delta t}\right)
+\end{bmatrix}.
+$$
+
+$Q$描述下一交易日两个因子的创新风险，给定模型参数与时间步长后即已确定。它不是Kalman滤波对当前隐状态估计误差的协方差，也不是观测噪声协方差；选择期货头寸不会改变$Q$。
+
+#### 最小残余因子方差的期货头寸
+
+暂时保持现货和锁定的合约carry，即分红率$q$不变，并将价格变化对因子创新作一阶近似。期权多头加$n$单位期货的随机因子损益为
+
+$$
+\delta\Pi_{\mathrm{carry}}^{(1)}
+\approx b^\top\varepsilon_t+n\,g^\top\varepsilon_t
+=(b+ng)^\top\varepsilon_t.
+$$
+
+因此需要最小化的目标函数为
+
+$$
+J(n)=\operatorname{Var}_t\!\left(\delta\Pi_{\mathrm{carry}}^{(1)}\right)
+\approx(b+ng)^\top Q(b+ng)
+=b^\top Qb+2n\,g^\top Qb+n^2g^\top Qg.
+$$
+
+当$g^\top Qg>0$时，对$n$求导并令其为零，得到
+
+$$
+J'(n)=2g^\top Qb+2n\,g^\top Qg=0,
+\qquad
+\boxed{n^*=-\frac{g^\top Qb}{g^\top Qg}}.
+$$
+
+由于$J''(n)=2g^\top Qg>0$，该解为唯一的最小值点，最小残余方差为
+
+$$
+J(n^*)=b^\top Qb-\frac{(g^\top Qb)^2}{g^\top Qg}.
+$$
+
+单一期货通常不能使$b+ng$的两个分量同时为零，因此最小值一般仍为正。若记$Q$的两个对角元为$Q_{ss},Q_{ff}$，且对应的$g_s,g_f$非零，还可以写成
+
+$$
+n^*=w_s\left(-\frac{V_s}{g_s}\right)
++w_f\left(-\frac{V_f}{g_f}\right),
+\qquad
+w_j=\frac{Q_{jj}g_j^2}{Q_{ss}g_s^2+Q_{ff}g_f^2},
+\quad w_s+w_f=1.
+$$
+
+即以各因子引起的期货价格创新方差为权重，对慢因子、快因子各自的对冲头寸作加权，而不是简单取平均或任取一个方向的delta。特殊情况下这些比例可以相同。若$g^\top Qg=0$，期货没有该目标下的随机因子暴露，目标函数不随$n$改变；现有程序选择$n=0$。
+
+如果将$n$定义为“期权的期货等价暴露”，而不是实际交易头寸，则该暴露为$g^\top Qb/(g^\top Qg)$，对冲期权多头时应交易其相反数。本文后续均使用带负号的**实际对冲头寸**$n^*$，避免混用两种约定。上述最优性仅针对固定当前敏感度的一阶因子风险，不包含现货波动、时间价值、融资、非线性与模型误差造成的全部损益。
 
 第一种为path-wise derivative，同上述定价部分，我们使用backward induction。在行权区域，令$R_t=F_{t,T}/S_t$, $K_t=e^{(r-q_{0,T})(T-t)}$，令行权收益为$g_t$，我们有：
 
@@ -260,7 +365,7 @@ $$
 \end{bmatrix}.
 $$
 
-记$V_s=\frac{\partial V}{\partial x_s},
+同样记$V_s=\frac{\partial V}{\partial x_s},
 V_f=\frac{\partial V}{\partial x_f}$，并假设$2$期货对冲数量为$n_1,n_2$，为使总$\Delta$为零我们有：
 $$
 \begin{bmatrix}
@@ -301,6 +406,61 @@ V_f
 \end{bmatrix}
 $$
 
+## 标的Delta部分
+
+因子对冲时固定了$S$，因此消除因子风险不等于消除标的价格风险。假设标的指数可以直接交易，并且无现金分红。本文仅计算建仓时$t=0$的现货对冲比例，不模拟后续调仓。
+
+保持当前因子和锁定的$q_{0,T}$不变，由期权价格对现货的一次齐次性及期货的同比例缩放关系，有
+
+$$
+V(S,x_s,x_f)=S\,v(x_s,x_f),\qquad
+F_i(S,x_s,x_f)=S\,f_i(x_s,x_f),
+$$
+
+$$
+\frac{\partial V}{\partial S}=\frac{V}{S},
+\qquad
+\frac{\partial F_i}{\partial S}=\frac{F_i}{S}.
+$$
+
+设实际现货头寸为$H$。仍以一份期权多头为基准。
+
+### 单期货对冲
+
+先根据上文计算实际期货头寸$n^*=-g^\top Qb/(g^\top Qg)$，再选择$H$。组合的一阶现货价格敏感度为
+
+$$
+\Delta_S^{\mathrm{portfolio}}
+=\frac{V}{S}+n^*\frac{F}{S}+H.
+$$
+
+令其为零，在$t=0$得到
+
+$$
+\boxed{H_{\mathrm{one},0}=-\frac{V_0+n^*F_0}{S_0}},
+\qquad
+V_0+n^*F_0+H_{\mathrm{one},0}S_0=0.
+$$
+
+因此计算顺序是：先以单一期货最小化残余因子方差，再用现货消除期权与期货合计的标的暴露。现货与因子是独立的状态坐标，在固定现货价格计算因子敏感度时，现货头寸不增加因子delta，因此不会破坏前一步的最优比例。
+
+例如$V_0=30$、$S_0=6000$、$F_0=5950$、$n^*=0.30$时，$H_{\mathrm{one},0}=-0.3025$，即期权多头配合买入$0.30$单位期货、卖出$0.3025$单位现货。实际符号取决于计算结果，不应强制期货为多或现货为空。
+
+### 双期货对冲
+
+先保留因子部分求出的实际头寸$(n_1,n_2)^\top=-G^{-1}b$，再令
+
+$$
+\frac{V_0}{S_0}+n_1\frac{F_{1,0}}{S_0}
++n_2\frac{F_{2,0}}{S_0}+H_{\mathrm{two},0}=0,
+$$
+
+得到
+
+$$
+\boxed{H_{\mathrm{two},0}
+=-\frac{V_0+n_1F_{1,0}+n_2F_{2,0}}{S_0}}.
+$$
 
 
 # 演示

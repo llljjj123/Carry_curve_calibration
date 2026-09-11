@@ -1,0 +1,6 @@
+{
+  "status": "passed",
+  "focused_short_study_tests": 7,
+  "full_regression_tests": 78,
+  "command": "D:\\miniforge3\\envs\\spyder-env\\python.exe -B -m pytest carry_put_backtest/tests carry_put_pricing/tests Demo/tests im_2factor_ou_carry/tests -q -p no:cacheprovider"
+}

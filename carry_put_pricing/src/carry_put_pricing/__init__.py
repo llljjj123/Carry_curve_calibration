@@ -16,18 +16,26 @@ from .models import (
     TwoFactorOUParams,
 )
 from .hedging import (
+    calculate_one_futures_hedge,
+    factor_innovation_covariance,
     HedgeFuturesContract,
     TwoFuturesHedgeResult,
     calculate_two_futures_hedge,
 )
 from .pricer import (
+    ExistingCarryPutResult,
     ExerciseStepSummary,
     FuturesEquivalentCurveDelta,
     PricingResult,
     price_american_carry_put,
+    price_existing_carry_put,
 )
 
 __all__ = [
+    "calculate_one_futures_hedge",
+    "factor_innovation_covariance",
+    "ExistingCarryPutResult",
+    "price_existing_carry_put",
     "CarryPutContract",
     "ExerciseStepSummary",
     "FactorState",

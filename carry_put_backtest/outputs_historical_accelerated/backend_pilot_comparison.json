@@ -1,0 +1,18 @@
+{
+  "log_likelihood_difference": -2.2773747332394123e-09,
+  "parameter_differences": {
+    "kappa_slow": -1.1959377115289271e-06,
+    "kappa_fast": 2.2465083924672058e-05,
+    "theta": -5.714182113591981e-09,
+    "eta_slow": 2.592172713977714e-08,
+    "eta_fast": 2.6850180061543938e-06,
+    "sigma_epsilon": 2.98656694969375e-10
+  },
+  "pnl_differences": {
+    "no_hedge": -3.0394971087588374e-05,
+    "one_futures": 9.001622899518225e-06,
+    "two_futures": 7.489370673852136e-06
+  },
+  "reference_calibration_seconds": 105.83149799999956,
+  "accelerated_calibration_seconds": 1.6888495000021067
+}

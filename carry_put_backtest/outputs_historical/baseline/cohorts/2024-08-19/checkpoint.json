@@ -1,0 +1,42 @@
+{
+  "signature": {
+    "config": {
+      "window_dates": 488,
+      "risk_free_rate": 0.014,
+      "observation_noise_model": "constant_log_futures",
+      "optimizer_starts": 12,
+      "optimizer_maxiter": 1500,
+      "seed": 852,
+      "kappa_gap_upper_bound": 90.0,
+      "eta_fast_upper_bound": 6.0,
+      "option_units": 1.0,
+      "option_multiplier": 1.0,
+      "futures_multiplier": 1.0,
+      "fee_per_contract": 0.0,
+      "slippage_points": 0.0,
+      "round_contracts": false,
+      "execution_lag_sessions": 0,
+      "condition_warning": 1000.0,
+      "numerical": {
+        "slow_grid_points": 301,
+        "fast_grid_points": 401,
+        "stationary_stddev_width": 6.0,
+        "quadrature_order": 43,
+        "minimum_half_width": 0.01,
+        "exercise_tolerance": 1e-12
+      }
+    },
+    "inputs_and_code": {
+      "im_2factor_ou_carry\\data\\raw\\spot_raw.csv": "7143b44a92530af4ccef01da147f906a815d1c76935ff3abffd4c39fb55d5f65",
+      "im_2factor_ou_carry\\data\\raw\\futures_raw.csv": "3014b4c874262aa314505b70a84ffe346e979af92ca44cbd1b063b8cacdde4e0",
+      "carry_put_pricing\\src\\carry_put_pricing\\analytics.py": "8101182b9afbff6faae7a94f9e9cf0dae0c15bef6b9183114bc7bb3540ac159f",
+      "carry_put_pricing\\src\\carry_put_pricing\\hedging.py": "dd9326088b2d656cdf36a31f42aa0f1164e2c0320d1cf64087396f4366a68817",
+      "carry_put_pricing\\src\\carry_put_pricing\\models.py": "74500f01055a455bf3347f4034d81ea5fa2546bc49aee7dbc8d3fad7667a2ff5",
+      "carry_put_pricing\\src\\carry_put_pricing\\pricer.py": "307cda7183d19edc45b8d6a362d01c7c8ccedb8b6d1d5bb445b09e3ac662fce9",
+      "carry_put_pricing\\src\\carry_put_pricing\\__init__.py": "3081d553429b2c38d6c28708b35cb6062c31e18d595e9bf7099c0a953823df0e",
+      "carry_put_backtest\\engine.py": "ed1d52c46a9d6b97e34a000c16fee7cf4630976a13600826566a25975bc1dff8",
+      "carry_put_backtest\\market.py": "cc5ea6eacaf6f78bf6b54ed033b8c8fcfb5a4223e3d1fdba0ebcf13ed9a2696c"
+    }
+  },
+  "runtime_seconds": 139.71784740000294
+}

@@ -18,6 +18,7 @@ The linear payoff `F(t,T) - F(0,T)` is deliberately excluded.
 - `Carry_Put_Demo.ipynb`: executed narrative demonstration.
 - `calibration.py`: sample selection, volatility, calibration, filtering, and exports.
 - `option_pricing.py`: option-only pricing and convergence checks.
+- `inception_hedging.py`: pure inception futures-plus-spot hedge calculations.
 - `profile_analysis.py`: fixed-fast-volatility likelihood and option-price profile.
 - `demo_workflow.py`: orchestration, charts, and summary output.
 - `outputs/`: generated CSV, JSON, and PNG results.
@@ -90,19 +91,27 @@ The company calendar is a planning input rather than a final official CFFEX
 schedule and should be replaced or confirmed when the official 2027 calendar
 is published.
 
-## Joint two-futures hedge
+## Inception futures-plus-spot hedges
 
-The Demo reports the existing slow-only and fast-only directional deltas and an
-additional joint hedge using the two selected futures. The joint calculation
-uses observed futures closes and solves the two-by-two slow/fast exposure
-system. It reports the option deltas, opposite-signed positions required to
-hedge a long option, determinant, condition number, angular separation, and
-post-hedge residual factor exposures in `two_futures_hedge.csv` and
-`demo_summary.json`.
+The Demo retains the slow-only and fast-only directional deltas. It then uses
+the first configured hedge future to display the continuous long-option
+position minimizing one-session OU carry-factor innovation variance, followed
+by the spot position that neutralizes local scale exposure. This combined
+carry hedge is not an average of the two directional deltas.
+
+The existing joint hedge uses both selected futures and solves the two-by-two
+slow/fast exposure system. It reports option deltas, opposite-signed positions
+required to hedge a long option, determinant, condition number, angular
+separation, and post-hedge residual factor exposures in
+`two_futures_hedge.csv` and `demo_summary.json`. The notebook then displays the
+accompanying spot position. In both cases spot satisfies
+`V0 + sum(n_i F_i) + H S0 = 0` at fixed locked contractual carry.
 
 Contract multipliers and integer rounding are omitted. If the hedge matrix is
 singular, the Demo emits and records a warning and leaves both joint deltas and
-hedge positions unset. Backtesting is intentionally deferred.
+hedge positions unset; the two-futures spot position is explicitly unavailable
+without affecting a valid one-futures result. These are inception sensitivity
+hedges, not funded positions, a P&L strategy, or a risk-free replication.
 
 The base calibration uses 12 optimizer starts. The fixed-eta profile re-estimates
 the other five parameters from four starts at each grid point and reprices the

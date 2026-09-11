@@ -12,6 +12,41 @@ from .analytics import ou_integral_loading
 from .models import TwoFactorOUParams
 
 
+def factor_innovation_covariance(
+    ou_params: TwoFactorOUParams, dt: float = 1.0 / 244,
+) -> np.ndarray:
+    """Exact independent OU innovation covariance over a hedge interval."""
+    if not isfinite(dt) or dt <= 0:
+        raise ValueError("dt must be positive and finite")
+    kappa = np.array([ou_params.kappa_slow, ou_params.kappa_fast])
+    eta = np.array([ou_params.eta_slow, ou_params.eta_fast])
+    return np.diag(eta**2 * (-np.expm1(-2 * kappa * dt)) / (2 * kappa))
+
+
+def calculate_one_futures_hedge(
+    *, option_slow_factor_sensitivity: float,
+    option_fast_factor_sensitivity: float,
+    ou_params: TwoFactorOUParams,
+    hedge_future: HedgeFuturesContract,
+) -> float:
+    """Continuous long-option position minimizing local carry-factor variance.
+
+    This is a carry-risk hedge, not a minimum-total-P&L-variance hedge: spot
+    scale risk and observation noise are excluded from this objective.
+    """
+    b = np.array([option_slow_factor_sensitivity, option_fast_factor_sensitivity])
+    if not np.isfinite(b).all():
+        raise ValueError("Option factor sensitivities must be finite")
+    g = -hedge_future.futures_price * np.array([
+        ou_integral_loading(ou_params.kappa_slow, hedge_future.maturity),
+        ou_integral_loading(ou_params.kappa_fast, hedge_future.maturity),
+    ])
+    q = factor_innovation_covariance(ou_params, 1 / hedge_future.periods_per_year)
+    denominator = float(g @ q @ g)
+    # With no stochastic factor risk, all positions tie; choose no trade.
+    return 0.0 if denominator == 0 else -float(g @ q @ b) / denominator
+
+
 @dataclass(frozen=True)
 class HedgeFuturesContract:
     """Observed futures quote and strict trading-session maturity used for hedging."""

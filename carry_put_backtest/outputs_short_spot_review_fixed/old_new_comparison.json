@@ -1,0 +1,25 @@
+{
+  "status": "compared",
+  "old_exact_source_provenance": "unresolved",
+  "matched_daily_rows": 1345,
+  "old_only_daily_rows": 0,
+  "new_only_daily_rows": 0,
+  "maximum_absolute_numeric_or_mismatch_count_by_field": {
+    "signed_option_mark": 0.0,
+    "option_mark": 0.0,
+    "exercise_now": 0,
+    "expired": 0,
+    "contracts_1": 0.0,
+    "contracts_2": 0.0,
+    "spot_units": 0.0,
+    "cash": 0.0,
+    "equity": 0.0,
+    "discounted_equity": 0.0,
+    "discounted_pnl_change": 0.0,
+    "residual_slow_exposure": 0.0,
+    "residual_fast_exposure": 0.0,
+    "residual_scale_exposure": 0.0,
+    "spot_delta_residual": 0.0
+  },
+  "coverage_equal": true
+}

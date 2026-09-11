@@ -1,0 +1,22 @@
+{
+  "completed_cohorts": 24,
+  "active_dates": 269,
+  "coverage_exclusions": {
+    "insufficient_488_date_history": 24
+  },
+  "independent_cash_replay_max_errors": {
+    "cash": 1.4210854715202004e-13,
+    "equity": 1.4210854715202004e-13,
+    "discounted_equity": 1.7053025658242404e-13,
+    "discounted_pnl_change": 8.526512829121202e-14,
+    "contracts_1": 0.0,
+    "contracts_2": 0.0
+  },
+  "two_futures_max_absolute_factor_residual": 5.684341886080803e-14,
+  "maximum_condition_number": 119.94172821871416,
+  "conditioning_warning_days": 0,
+  "kappa_gap_bound_cohorts": 0,
+  "eta_fast_bound_cohorts": 0,
+  "exercise_cohorts": 22,
+  "expiry_cohorts": 2
+}

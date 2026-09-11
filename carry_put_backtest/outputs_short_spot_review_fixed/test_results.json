@@ -1,0 +1,39 @@
+{
+  "status": "passed",
+  "exit_code": 0,
+  "passed_count": 93,
+  "command": [
+    "D:\\miniforge3\\envs\\spyder-env\\python.exe",
+    "-B",
+    "-m",
+    "pytest",
+    "carry_put_backtest/tests",
+    "carry_put_pricing/tests",
+    "Demo/tests",
+    "im_2factor_ou_carry/tests",
+    "-q",
+    "-p",
+    "no:cacheprovider"
+  ],
+  "interpreter": "D:\\miniforge3\\envs\\spyder-env\\python.exe",
+  "started_at_utc": "2026-09-11T07:53:00.964754+00:00",
+  "ended_at_utc": "2026-09-11T07:58:16.184303+00:00",
+  "source_identity": {
+    "carry_put_backtest/__init__.py": "ee22362cb49b0e4a1e5e2d90c7fa33fcdc94ac9382e0d41b1c42652eeaa9da07",
+    "carry_put_backtest/__main__.py": "e384e73d18d4ef0f9ba81466ef82e5057c12cf5dad3a89781a84f4e79a7b5c04",
+    "carry_put_backtest/analyze_historical.py": "fca369f730cfc7d6c4ccc9a1975e9889eb2ae9a70e8d914ece79b98a1ca03d7a",
+    "carry_put_backtest/analyze_short_spot.py": "de629aea80144ff77cbbb5eade73dd5f6502ab8a226cde50a2759867d0e2e229",
+    "carry_put_backtest/check_numerics.py": "38131a24b9694fc0b9d985f09aa0e112fde63f557e1c0c778eaac505d553fc9c",
+    "carry_put_backtest/engine.py": "1ed966bc382354c3a90e5e22d1f67c15ad9c2721f4ba8289b307459582acacd4",
+    "carry_put_backtest/historical_validation.py": "7da3cd37cd02a462a3b5d3d92935ad0d73102d612aff80c211250e750789169b",
+    "carry_put_backtest/market.py": "cc5ea6eacaf6f78bf6b54ed033b8c8fcfb5a4223e3d1fdba0ebcf13ed9a2696c",
+    "carry_put_backtest/provenance.py": "70ae7b2c23c124cf3af6f86903332aebe5c444432ef1d5caac5f5afed97dddc5",
+    "carry_put_backtest/reporting.py": "6a2b85c2f30ed8f27f8d891ba3ca255a358155e39e0804ffdf28362c5ca4c717",
+    "carry_put_backtest/test_evidence.py": "2e57d4a401108e8c996625c93782b68e1a61eaac3e8f9bec8f3bcc5311ffca46",
+    "carry_put_backtest/tests/test_backtest.py": "630fd441895ac1234223657e64879caa49798623594e91afe0b934063e062f81",
+    "carry_put_backtest/tests/test_fast_likelihood.py": "e0a08494ed3262695838fe3b9cf6f9469e2d976976de56ff5ece6f4eeb8561c3",
+    "carry_put_backtest/tests/test_review_fixes.py": "67173f5ee2c5c46f0435fc3f58d2130244eb066e68457fedbf7662e673417bfd",
+    "carry_put_backtest/tests/test_short_spot.py": "42c84c7639d94b6f1a3705545c5f8dc79a193add1ac465042c9b68d1f5d28a18"
+  },
+  "full_log_file": "test_results.log"
+}

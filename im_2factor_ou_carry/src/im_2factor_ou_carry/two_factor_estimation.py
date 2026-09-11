@@ -138,6 +138,7 @@ def estimate_two_factor_ou(
     eta_fast_upper_bound: float = 3.0,
     kappa_gap_upper_bound: float = 60.0,
     observation_noise_model: ObservationNoiseModel = "constant_carry",
+    likelihood_backend: str = "numpy",
 ) -> TwoFactorEstimationResult:
     """Estimate independent slow/fast OU factors with enforced ordering."""
     observation_noise_model = normalize_observation_noise_model(observation_noise_model)
@@ -146,6 +147,13 @@ def estimate_two_factor_ou(
         gap_function,
         observation_noise_model,
     )
+    if likelihood_backend == "numpy":
+        evaluate = lambda params: two_factor_log_likelihood(dataset, params)
+    elif likelihood_backend == "numba":
+        from .fast_likelihood import make_fast_log_likelihood
+        evaluate = make_fast_log_likelihood(dataset)
+    else:
+        raise ValueError("likelihood_backend must be 'numpy' or 'numba'")
     bounds = _parameter_bounds(
         eta_fast_upper_bound,
         kappa_gap_upper_bound,
@@ -155,7 +163,7 @@ def estimate_two_factor_ou(
     def objective(values: np.ndarray) -> float:
         try:
             params = unpack(values)
-            result = -two_factor_log_likelihood(dataset, params)
+            result = -evaluate(params)
             return result if np.isfinite(result) else 1e100
         except (ValueError, FloatingPointError, OverflowError, np.linalg.LinAlgError):
             return 1e100
